@@ -42,6 +42,124 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[Redberry](https://redberry.international/laravel-development)**
 - **[Active Logic](https://activelogic.com)**
 
+## Docker Deployment
+
+This project includes Docker configuration for easy deployment and development.
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/get-started) (version 20.10 or higher)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or higher)
+
+### Quick Start
+
+1. **Clone the repository**:
+   ```bash
+   cd "/Users/iputualfinteguhwahyudi/Downloads/JTB-Tours TA - 2"
+   ```
+
+2. **Build and start the containers**:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+3. **Access the application**:
+   Open your browser and navigate to `http://localhost:8000`
+
+### Services
+
+The Docker setup includes three services:
+
+- **app**: PHP 8.2-FPM application container
+- **db**: MySQL 8.0 database
+- **nginx**: Nginx web server
+
+### Environment Configuration
+
+The Docker setup uses `.env.docker` for environment variables. Default database credentials:
+
+- **Database**: `jtb_tours`
+- **Username**: `jtb_user`
+- **Password**: `jtb_password`
+- **Root Password**: `root_password`
+
+To customize these values, edit `.env.docker` before running `docker-compose up`.
+
+### Common Docker Commands
+
+**View running containers**:
+```bash
+docker-compose ps
+```
+
+**View logs**:
+```bash
+docker-compose logs -f
+docker-compose logs -f app    # App logs only
+docker-compose logs -f nginx  # Nginx logs only
+docker-compose logs -f db     # Database logs only
+```
+
+**Execute commands in the app container**:
+```bash
+docker-compose exec app php artisan migrate
+docker-compose exec app php artisan db:seed
+docker-compose exec app php artisan cache:clear
+```
+
+**Stop containers**:
+```bash
+docker-compose stop
+```
+
+**Start containers**:
+```bash
+docker-compose start
+```
+
+**Restart containers**:
+```bash
+docker-compose restart
+```
+
+**Stop and remove containers**:
+```bash
+docker-compose down
+```
+
+**Stop and remove containers with volumes** (deletes database data):
+```bash
+docker-compose down -v
+```
+
+### Troubleshooting
+
+**Port already in use**:
+If port 8000 or 3306 is already in use, edit `docker-compose.yml` and change the port mappings:
+```yaml
+ports:
+  - "8080:80"  # Change 8000 to 8080 for nginx
+  - "3307:3306"  # Change 3306 to 3307 for db
+```
+
+**Permission issues**:
+If you encounter permission issues, run:
+```bash
+docker-compose exec app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+docker-compose exec app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+```
+
+**Database connection errors**:
+Make sure the database service is running:
+```bash
+docker-compose ps db
+```
+
+If the database is not ready, wait a few seconds and try again, or restart the app container:
+```bash
+docker-compose restart app
+```
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
@@ -57,3 +175,4 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+

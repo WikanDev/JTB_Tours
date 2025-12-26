@@ -1,0 +1,79 @@
+services:
+  # PHP-FPM Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jtb-tours-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - jtb-network
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=jtb_tours
+      - DB_USERNAME=jtb_user
+      - DB_PASSWORD=jtb_password
+    command: >
+      sh -c "
+        cp .env.docker .env &&
+        php artisan key:generate --force &&
+        php artisan config:cache &&
+        php artisan migrate --force &&
+        php-fpm
+      "
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: jtb-tours-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: jtb_tours
+      MYSQL_USER: jtb_user
+      MYSQL_PASSWORD: jtb_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - jtb-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: jtb-tours-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - jtb-network
+    depends_on:
+      - app
+
+# Networks
+networks:
+  jtb-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  dbdata:
+    driver: local
