@@ -37,8 +37,13 @@ RUN npm install && npm run build
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Copy and set entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+

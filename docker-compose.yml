@@ -21,27 +21,6 @@ services:
       - DB_DATABASE=jtb_tours
       - DB_USERNAME=jtb_admin_db
       - DB_PASSWORD=jtb_tours_db_2025
-    command: >
-      sh -c "
-        echo 'Starting application setup...' &&
-        cp .env.docker .env &&
-        echo 'Waiting for database to be ready...' &&
-        until php artisan db:show 2>/dev/null; do
-          echo 'Database not ready yet, waiting...'
-          sleep 2
-        done &&
-        echo 'Database is ready!' &&
-        php artisan key:generate --force &&
-        echo 'APP_KEY generated successfully' &&
-        php artisan config:cache &&
-        php artisan migrate --force &&
-        echo 'Migrations completed' &&
-        php artisan db:seed --force --class=InitialSeeder &&
-        echo 'Database seeded' &&
-        php artisan optimize &&
-        echo 'Application optimized, starting PHP-FPM...' &&
-        php-fpm
-      "
 
   # MySQL Database
   db:
