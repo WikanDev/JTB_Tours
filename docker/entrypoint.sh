@@ -5,20 +5,36 @@ echo "=== JTB Tours Application Setup ==="
 
 # Copy environment file
 echo "1. Setting up environment..."
-cp /var/www/html/.env.docker /var/www/html/.env
+if [ -f /var/www/html/.env ]; then
+    echo "   ℹ .env already exists, using existing file"
+else
+    cp /var/www/html/.env.docker /var/www/html/.env
+    echo "   ✓ .env copied from .env.docker"
+fi
 
 # Wait for database
+DB_HOST_VAR=${DB_HOST:-db}
 echo "2. Waiting for database to be ready..."
+echo "   Database host: $DB_HOST_VAR"
+echo "   Database name: ${DB_DATABASE:-jtb_tours}"
+
 MAX_TRIES=30
 COUNT=0
 until php artisan db:show 2>/dev/null || [ $COUNT -eq $MAX_TRIES ]; do
-    echo "   Database not ready yet, waiting... ($COUNT/$MAX_TRIES)"
+    echo "   Waiting... ($COUNT/$MAX_TRIES)"
     sleep 2
     COUNT=$((COUNT+1))
 done
 
 if [ $COUNT -eq $MAX_TRIES ]; then
-    echo "   ERROR: Database connection timeout!"
+    echo "   ❌ ERROR: Database connection timeout!"
+    echo ""
+    echo "   Troubleshooting:"
+    echo "   - Check DB_HOST is correct (current: $DB_HOST_VAR)"
+    echo "   - Verify MySQL service is running"
+    echo "   - Check database credentials"
+    echo "   - Verify network connectivity"
+    echo ""
     exit 1
 fi
 
