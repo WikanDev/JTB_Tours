@@ -19,8 +19,8 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=jtb_tours
-      - DB_USERNAME=jtb_user
-      - DB_PASSWORD=jtb_password
+      - DB_USERNAME=jtb_admin_db
+      - DB_PASSWORD=jtb_tours_db_2025
     command: >
       sh -c "
         cp .env.docker .env &&
@@ -37,13 +37,13 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: jtb_tours
-      MYSQL_USER: jtb_user
-      MYSQL_PASSWORD: jtb_password
+      MYSQL_USER: jtb_admin_db
+      MYSQL_PASSWORD: jtb_tours_db_2025
       MYSQL_ROOT_PASSWORD: root_password
     volumes:
       - dbdata:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - jtb-network
     healthcheck:
