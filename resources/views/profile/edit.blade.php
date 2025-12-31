@@ -14,12 +14,8 @@
     Kelola informasi akun dan data pribadi Anda.
   </p>
 
-  
-  @if(session('success'))
-    <div class="mb-4 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
-      {{ session('success') }}
-    </div>
-  @endif
+
+  {{-- Flash messages now handled by global notification card component --}}
 
   
   @if($errors->any())

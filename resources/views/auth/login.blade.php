@@ -14,6 +14,9 @@
   </style>
 </head>
 <body class="bg-gray-50">
+  {{-- Include flash notification card --}}
+  <x-notification-card />
+  
   <section class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
     
     <div class="mb-10">
@@ -28,12 +31,6 @@
           <p class="text-gray-500 text-center text-sm mb-6">Silakan masuk ke akun Anda</p>
 
           
-          @if(session('success'))
-            <div class="bg-green-50 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm">
-              {{ session('success') }}
-            </div>
-          @endif
-
           
           <form method="POST" action="{{ route('login.post') }}">
             @csrf
