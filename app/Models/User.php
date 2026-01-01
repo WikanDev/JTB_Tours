@@ -37,7 +37,7 @@ class User extends Authenticatable
         'used_hours' => 'integer',
     ];
 
-    // Mutator: otomatis hash password bila di-set
+    
     protected function password(): Attribute
     {
         return Attribute::make(
@@ -45,7 +45,7 @@ class User extends Authenticatable
         );
     }
 
-    // Relasi
+    
     public function assignmentsAsDriver(): HasMany
     {
         return $this->hasMany(Assignment::class, 'driver_id');
@@ -66,7 +66,7 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'created_by');
     }
 
-    // Helpers
+    
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';

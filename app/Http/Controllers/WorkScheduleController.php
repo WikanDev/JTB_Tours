@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class WorkScheduleController extends Controller
 {
-    /**
-     * Show schedules for a given month/year (defaults to current).
-     */
+    
     public function index(Request $request)
     {
         $year  = (int) $request->query('year', now()->year);
@@ -29,7 +27,7 @@ class WorkScheduleController extends Controller
 
         $missingUsers = $users->whereNotIn('id', $existingScheduleUserIds);
 
-        // Auto-generate jika ada user tanpa jadwal bulan ini
+        
         if ($missingUsers->isNotEmpty()) {
             DB::transaction(function () use ($missingUsers, $year, $month) {
                 foreach ($missingUsers as $user) {
@@ -38,21 +36,20 @@ class WorkScheduleController extends Controller
                         'year'        => $year,
                         'month'       => $month,
                         'total_hours' => $user->monthly_work_limit ?? 200,
-                        'used_hours'  => 0, // fresh month → 0
+                        'used_hours'  => 0, 
                     ]);
                 }
             });
         }
 
-        // Lanjutkan seperti biasa
+        
         $schedules = WorkSchedule::whereIn('user_id', $users->pluck('id'))
             ->where('month', $month)
             ->where('year', $year)
             ->get()
             ->keyBy('user_id');
 
-
-        $perPage = 15; // ganti sesuai kebutuhan
+        $perPage = 15; 
         $workSchedules = WorkSchedule::query()
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
@@ -62,10 +59,7 @@ class WorkScheduleController extends Controller
         return view('work_schedules.index', compact('users','schedules','month','year', 'workSchedules'));
     }
 
-    /**
-     * Generate default schedules for all drivers/guides for the selected month.
-     * Default total_hours is taken from user's monthly_work_limit or fallback.
-     */
+    
     public function generateForAll(Request $request)
     {
         $data = $request->validate([
@@ -84,8 +78,8 @@ class WorkScheduleController extends Controller
                     ['user_id' => $user->id, 'month' => $month, 'year' => $year],
                     [
                         'total_hours' => $user->monthly_work_limit ?? 200,
-                        // Jangan set used_hours di sini — biarkan scheduler yang handle awal bulan
-                        // Jika record sudah ada, Laravel tidak overwrite used_hours karena tidak diisi
+                        
+                        
                     ]
                 );
             }
@@ -95,9 +89,7 @@ class WorkScheduleController extends Controller
             ->with('success','Work schedules dibuat / diperbarui untuk semua driver & guide.');
     }
 
-    /**
-     * Bulk update schedules: expects inputs like schedules[user_id] = total_hours
-     */
+    
     public function bulkUpdate(Request $request)
     {
         $data = $request->validate([
@@ -118,7 +110,7 @@ class WorkScheduleController extends Controller
 
                 $ws = WorkSchedule::firstOrNew(['user_id'=>$user->id,'month'=>$month,'year'=>$year]);
 
-                // if used_hours > new total_hours, cap used_hours to total_hours
+                
                 $ws->total_hours = $totalHours ?? ($user->monthly_work_limit ?? 200);
                 $ws->used_hours = min($ws->used_hours ?? 0, $ws->total_hours);
                 $ws->save();
@@ -129,18 +121,14 @@ class WorkScheduleController extends Controller
             ->with('success','Work schedules berhasil diperbarui.');
     }
 
-    /**
-     * Edit single schedule (form)
-     */
+    
     public function edit(WorkSchedule $workSchedule)
     {
         $workSchedule->load('user');
         return view('work_schedules.edit', compact('workSchedule'));
     }
 
-    /**
-     * Update single schedule
-     */
+    
     public function update(Request $request, WorkSchedule $workSchedule)
     {
         $data = $request->validate([
@@ -160,9 +148,7 @@ class WorkScheduleController extends Controller
             ->with('success','Schedule diperbarui.');
     }
 
-    /**
-     * Reset used_hours to zero for selected users or for all in the month.
-     */
+    
     public function resetUsedHours(Request $request)
     {
         $data = $request->validate([

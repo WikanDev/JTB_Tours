@@ -26,7 +26,7 @@
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800" x-data="layout()" x-init="init()" @keydown.escape.window="closeSidebar()">
-  {{-- Include flash notification card --}}
+  
   <x-notification-card />
   
   @if(auth()->check())

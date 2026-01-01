@@ -10,9 +10,7 @@ use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
-    /**
-     * List vehicles with pagination.
-     */
+    
     public function index(Request $request)
     {
         try {
@@ -43,9 +41,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Show create form.
-     */
+    
     public function create()
     {
         try {
@@ -56,9 +52,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Store new vehicle.
-     */
+    
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -83,9 +77,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Show edit form.
-     */
+    
     public function edit(Vehicle $vehicle)
     {
         try {
@@ -96,9 +88,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Update vehicle.
-     */
+    
     public function update(Request $request, Vehicle $vehicle)
     {
         $data = $request->validate([
@@ -123,32 +113,30 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Destroy vehicle. Prevent deletion if vehicle is referenced by active assignments/orders.
-     */
+    
     public function destroy(Vehicle $vehicle)
     {
         DB::beginTransaction();
         try {
-            // Try to prevent deletion if related records exist.
-            // Use method_exists to avoid fatal if relations are not defined.
+            
+            
             $hasRelations = false;
 
-            // check assignments relation
+            
             if (method_exists($vehicle, 'assignments')) {
                 try {
                     if ($vehicle->assignments()->exists()) $hasRelations = true;
                 } catch (\Throwable $e) {
-                    // ignore relation check errors, we'll rely on DB constraints
+                    
                 }
             }
 
-            // check orders relation
+            
             if (!$hasRelations && method_exists($vehicle, 'orders')) {
                 try {
                     if ($vehicle->orders()->exists()) $hasRelations = true;
                 } catch (\Throwable $e) {
-                    // ignore
+                    
                 }
             }
 
@@ -165,23 +153,21 @@ class VehicleController extends Controller
             return redirect()->back()->with('error','Gagal menghapus kendaraan.');
         }
     }
-    /**
-     * Show vehicle details including usage history.
-     */
+    
     public function show(Vehicle $vehicle)
     {
         try {
-            // Fetch history: assignments related to this vehicle
-            // We want to see who used it (driver) and when.
+            
+            
             $history = \App\Models\Assignment::with(['driver', 'order'])
                         ->where('vehicle_id', $vehicle->id)
                         ->orderBy('assigned_at', 'desc')
                         ->paginate(20);
 
-            // Check current active assignment to see if "in_use" and who is driving.
+            
             $activeAssignment = \App\Models\Assignment::with(['driver', 'order'])
                                 ->where('vehicle_id', $vehicle->id)
-                                ->whereIn('status', ['accepted', 'pending', 'in_progress']) // pending is effectively reserved, in_progress means currently driving
+                                ->whereIn('status', ['accepted', 'pending', 'in_progress']) 
                                 ->orderBy('assigned_at', 'asc')
                                 ->first();
 
@@ -191,9 +177,7 @@ class VehicleController extends Controller
             return redirect()->back()->with('error','Gagal memuat detail kendaraan.');
         }
     }
-    /**
-     * Check which vehicle types are available for a specific time slot.
-     */
+    
     public function checkAvailabilityTypes(Request $request)
     {
         $pickup = $request->query('pickup_time');
@@ -207,9 +191,9 @@ class VehicleController extends Controller
             $startTime = \Carbon\Carbon::parse($pickup);
             $endTime = $startTime->copy()->addMinutes($duration);
 
-            // Re-use Logic from checkAvailabilityList but return types
-            // However, to avoid code duplication, I should isolate the query logic.
-            // For now, I'll just check availability same way.
+            
+            
+            
 
             $availableVehicles = $this->getAvailableVehicles($startTime, $endTime);
             $types = $availableVehicles->pluck('type')->unique()->values()->all();
@@ -223,9 +207,7 @@ class VehicleController extends Controller
         }
     }
 
-    /**
-     * Get list of specific available vehicles for a time slot.
-     */
+    
     public function checkAvailabilityList(Request $request)
     {
         $startStr = $request->query('start');
@@ -242,7 +224,7 @@ class VehicleController extends Controller
 
             $availableVehicles = $this->getAvailableVehicles($startTime, $endTime, $ignoreOrderId);
 
-            return response()->json($availableVehicles->values()); // reset keys
+            return response()->json($availableVehicles->values()); 
 
         } catch (\Throwable $e) {
             Log::error('Vehicle.checkAvailabilityList error: ' . $e->getMessage());
@@ -252,12 +234,12 @@ class VehicleController extends Controller
 
     private function getAvailableVehicles($startTime, $endTime, $ignoreOrderId = null)
     {
-        // 1. Get all active vehicles
+        
         $vehicles = Vehicle::where('status', '!=', 'maintenance')->get();
         
         $available = $vehicles->filter(function ($v) use ($startTime, $endTime, $ignoreOrderId) {
             
-            // Check 1: Overlapping Assignments
+            
             $assignmentsQ = $v->assignments()
                 ->whereIn('status', ['pending', 'accepted', 'in_progress']);
             
@@ -276,12 +258,12 @@ class VehicleController extends Controller
 
             if ($hasAssignmentOverlap) return false;
 
-            // Check 2: Overlapping Order Reservations
+            
             $ordersQ = $v->orders()
                 ->whereIn('status', ['pending', 'assigned']);
             
             if ($ignoreOrderId) {
-                // Important: Disambiguate column name if needed, but here simple id should work on relation query
+                
                 $ordersQ->where('orders.id', '!=', $ignoreOrderId);
             }
 

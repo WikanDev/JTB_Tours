@@ -14,8 +14,7 @@
     Kelola informasi akun dan data pribadi Anda.
   </p>
 
-
-  {{-- Flash messages now handled by global notification card component --}}
+  
 
   
   @if($errors->any())

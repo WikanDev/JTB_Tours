@@ -111,7 +111,6 @@
   </div>
 </div>
 
-
 <div
   x-data="assignmentModal()"
   x-init="init()"
@@ -254,7 +253,6 @@
     </div>
   </div>
 </div>
-
 
 @push('inline-styles')
 <style>

@@ -1,4 +1,4 @@
-{{-- Notification Card Component --}}
+
 @if(session('success') || session('error'))
 <div 
   x-data="{ show: true }" 

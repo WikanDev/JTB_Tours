@@ -28,7 +28,7 @@ class DashboardController extends Controller
         }
     }
 
-    // ===== ADMIN / STAFF DASHBOARD =====
+    
     private function adminIndex(Request $request)
     {
         try {
@@ -39,7 +39,7 @@ class DashboardController extends Controller
             $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
             $endOfMonth   = Carbon::create($year, $month, 1)->endOfMonth();
 
-            // Ambil data satu per satu
+            
             $ordersThisMonth      = $this->getOrdersCountThisMonth($startOfMonth, $endOfMonth);
             $assignedThisMonth    = $this->getAssignedCountThisMonth($startOfMonth, $endOfMonth);
             $completedThisMonth   = $this->getCompletedCountThisMonth($startOfMonth, $endOfMonth);
@@ -47,11 +47,10 @@ class DashboardController extends Controller
             $monthlyOrders        = $this->getMonthlyOrdersLast12Months($now);
             $productDistribution  = $this->getProductDistributionThisMonth($startOfMonth, $endOfMonth);
             $topDrivers           = $this->getTopDriversThisMonth($year, $month);
-            $todaysTasks          = $this->getTodaysTasks(); // <-- Fetch
-            $todaysOrders         = $this->getTodaysOrders(); // <-- Fetch today's orders
+            $todaysTasks          = $this->getTodaysTasks(); 
+            $todaysOrders         = $this->getTodaysOrders(); 
             $availableYears       = $this->getAvailableYears();
 
-// order notifikasi
             $lastOrderId = Schema::hasTable('orders')
                 ? (Order::max('id') ?? 0)
                 : 0;
@@ -67,9 +66,9 @@ class DashboardController extends Controller
                 'month',
                 'year',
                 'availableYears',
-                'todaysTasks', // <-- dikirim ke Blade
-                'todaysOrders', // <-- dikirim ke Blade
-                'lastOrderId'   // <-- dikirim ke Blade
+                'todaysTasks', 
+                'todaysOrders', 
+                'lastOrderId'   
             ));
         } catch (\Throwable $e) {
             Log::error('Admin dashboard error: ' . $e->getMessage(), [
@@ -79,7 +78,7 @@ class DashboardController extends Controller
         }
     }
 
-    // ─── Helper Functions (Admin) ──────────────────────────────────────────────
+    
 
     private function getOrdersCountThisMonth(Carbon $start, Carbon $end): int
     {
@@ -223,20 +222,20 @@ class DashboardController extends Controller
     {
         if (!Schema::hasTable('assignments')) return collect();
 
-        // Tasks for today: 
-        // 1. Pending tasks assigned for Order pickup today.
-        // 2. Accepted tasks (in progress) regardless of date (or maybe just today?).
-        // User request: "Todays task" + "In progress juga muncul".
-        // Let's get assignments linked to Orders with pickup_time today OR status=accepted.
+        
+        
+        
+        
+        
         
         $todayStart = Carbon::today();
         $todayEnd = Carbon::today()->endOfDay();
 
         return Assignment::with(['order.product', 'driver', 'vehicle'])
             ->where(function($q) use ($todayStart, $todayEnd) {
-                 // Condition 1: Accepted or In Progress
+                 
                  $q->whereIn('status', ['accepted', 'in_progress'])
-                 // Condition 2: Pending/Assigned tasks with Order Pickup Today.
+                 
                    ->orWhere(function($q2) use ($todayStart, $todayEnd) {
                        $q2->where('status', 'pending')
                           ->whereHas('order', function($q3) use ($todayStart, $todayEnd) {
@@ -244,8 +243,8 @@ class DashboardController extends Controller
                           });
                    });
             })
-            ->orderBy('status', 'asc') // accepted first? 'accepted' comes before 'pending' alphabetically? a-p. Yes.
-            // Or sort by order pickup time?
+            ->orderBy('status', 'asc') 
+            
             ->get()
             ->sortBy(function($t) {
                 return $t->order->pickup_time ?? $t->created_at;
@@ -279,7 +278,7 @@ class DashboardController extends Controller
             ->toArray();
     }
 
-    // ===== DRIVER / GUIDE DASHBOARD =====
+    
     private function driverGuideIndex(Request $request)
     {
         $user = Auth::user();
@@ -287,47 +286,47 @@ class DashboardController extends Controller
         try {
             $now = Carbon::now();
 
-            // Tahun untuk chart + filter
+            
             $year  = (int) $request->query('year', $now->year);
-            // Bulan untuk card
+            
             $month = (int) $request->query('month', $now->month);
 
             $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
             $endOfMonth   = Carbon::create($year, $month, 1)->endOfMonth();
 
-            // Query assignment milik user
+            
             $baseQuery = Assignment::where(function ($q) use ($user) {
                 $q->where('driver_id', $user->id)
                   ->orWhere('guide_id', $user->id);
             });
 
-            // Total tugas bulan ini
+            
             $assignmentsCount = (clone $baseQuery)
                 ->whereBetween('assigned_at', [$startOfMonth, $endOfMonth])
                 ->count();
 
-            // Assignment completed bulan ini
+            
             $completedAssignments = (clone $baseQuery)
                 ->whereBetween('assigned_at', [$startOfMonth, $endOfMonth])
                 ->where('status', 'completed')
                 ->get();
 
-            // Work schedule untuk batas jam
+            
             $workSchedule = WorkSchedule::where('user_id', $user->id)
                 ->where('month', $month)
                 ->where('year', $year)
                 ->first();
 
-            // Gunakan used_hours dari WorkSchedule jika ada
+            
             if ($workSchedule) {
                 $usedHours = (float) $workSchedule->used_hours;
             } else {
-                // Fallback: hitung manual jika WorkSchedule belum ada
+                
                 $usedMinutes = 0;
                 foreach ($completedAssignments as $a) {
                      if ($a->started_at && $a->completed_at) {
                         $usedMinutes += max(0, Carbon::parse($a->completed_at)->diffInMinutes(Carbon::parse($a->started_at)));
-                     } elseif ($a->workstart && $a->workend) { // Legacy fallback
+                     } elseif ($a->workstart && $a->workend) { 
                         $usedMinutes += max(0, Carbon::parse($a->workend)->diffInMinutes(Carbon::parse($a->workstart)));
                      }
                 }
@@ -340,7 +339,7 @@ class DashboardController extends Controller
                 ? min(100, round(($usedHours / $totalHours) * 100))
                 : 0;
 
-            // 5 tugas terbaru bulan ini
+            
             $recentAssignments = (clone $baseQuery)
                 ->with(['order.product'])
                 ->whereBetween('assigned_at', [$startOfMonth, $endOfMonth])
@@ -350,7 +349,7 @@ class DashboardController extends Controller
 
             $completedThisMonth = $completedAssignments->count();
 
-            // Chart: completed per bulan (tahun berjalan)
+            
             $completedPerMonthRaw = (clone $baseQuery)
                 ->select(
                     DB::raw('MONTH(assigned_at) as month'),
@@ -372,7 +371,7 @@ class DashboardController extends Controller
                 ];
             }
 
-            // Tahun-tahun yang tersedia untuk filter
+            
             if (!Schema::hasTable('assignments')) {
                 $availableYears = [$now->year];
             } else {

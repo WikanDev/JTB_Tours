@@ -30,7 +30,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {{-- Status Card --}}
+        
         <div class="bg-white rounded-lg shadow p-6 md:col-span-2 flex items-center justify-between">
             <div>
                 <span class="text-gray-500 text-sm uppercase tracking-wider font-semibold">Status Saat Ini</span>
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        {{-- Order Info --}}
+        
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="bg-red-50 px-6 py-4 border-b border-red-100">
                 <h3 class="text-lg font-bold text-red-800">Informasi Order</h3>
@@ -85,14 +85,14 @@
             </div>
         </div>
 
-        {{-- Assignment Detail --}}
+        
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
                 <h3 class="text-lg font-bold text-blue-800">Detail Penugasan</h3>
             </div>
             <div class="p-6 space-y-4">
                 
-                {{-- Driver --}}
+                
                 <div class="flex items-start gap-4">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                         <i class="ph ph-steering-wheel text-xl"></i>
@@ -104,7 +104,7 @@
                     </div>
                 </div>
 
-                {{-- Guide --}}
+                
                 @if($assignment->guide)
                 <div class="flex items-start gap-4 pt-4 border-t border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
@@ -118,7 +118,7 @@
                 </div>
                 @endif
 
-                {{-- Vehicle --}}
+                
                 @if($assignment->vehicle)
                 <div class="flex items-start gap-4 pt-4 border-t border-gray-100">
                     <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
@@ -142,7 +142,7 @@
             </div>
         </div>
 
-        {{-- Timeline / Logs (Optional but helpful) --}}
+        
         <div class="bg-white rounded-lg shadow p-6 md:col-span-2">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Timeline</h3>
             <div class="flex flex-col md:flex-row gap-4 text-sm">

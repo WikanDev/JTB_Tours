@@ -60,7 +60,6 @@
         <div x-show="isExclusive" x-transition class="space-y-3 pl-8">
             <p class="text-sm text-gray-500 italic">Silakan isi detail fasilitas eksklusif secara manual di bawah.</p>
 
-
             
             <div class="pt-2 border-t mt-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Benefit Tambahan (Opsional)</label>
@@ -134,7 +133,6 @@
             </template>
         </div>
     </div>
-
 
     <div class="pt-6 border-t flex justify-end space-x-3">
       <x-secondary-button :href="route('products.index')">Batal</x-secondary-button>

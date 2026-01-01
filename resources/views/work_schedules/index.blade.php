@@ -15,7 +15,6 @@
       </div>
     </div>
 
-
   </div>
 
   
@@ -61,9 +60,7 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            {{-- <th class="px-4 py-2 text-left text-sm font-medium">
-              <input type="checkbox" id="select_all" title="Pilih semua" />
-            </th> --}}
+            
             <th class="px-4 py-2 text-left text-sm font-medium">ID</th>
             <th class="px-4 py-2 text-left text-sm font-medium">Nama</th>
             <th class="px-4 py-2 text-left text-sm font-medium">Role</th>
@@ -82,9 +79,7 @@
               $isGenerated = $ws !== null;
             @endphp
             <tr class="{{ $isGenerated ? '' : 'bg-blue-50' }}">
-              {{-- <td class="px-4 py-3 text-sm">
-                <input type="checkbox" name="user_ids[]" value="{{ $u->id }}" class="row_checkbox" />
-              </td> --}}
+              
               <td class="px-4 py-3 text-sm">{{ $u->id }}</td>
               <td class="px-4 py-3 text-sm">
                 <div class="font-medium">{{ $u->name }}</div>
@@ -122,7 +117,6 @@
                 @endif
               </td>
 
-
             </tr>
           @empty
             <tr>
@@ -143,11 +137,7 @@
             <button type="submit" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition">
               Simpan Perubahan
             </button>
-            {{-- <button type="button"
-                    onclick="this.closest('form').querySelectorAll('input[type=number]').forEach(el => el.value = el.defaultValue);"
-                    class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm transition">
-              Reset Form
-            </button> --}}
+            
           </div>
 
           <div class="text-xs text-gray-500">

@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class AvailabilityController extends Controller
 {
-    /**
-     * Index: list driver & guide with availability (for admin/staff)
-     */
+    
     public function index(Request $request)
     {
         try {
@@ -29,12 +27,12 @@ class AvailabilityController extends Controller
             }
 
             if ($request->filled('status')) {
-                $q->where('status', $request->status); // status = 'online' or 'offline' (we reuse user->status)
+                $q->where('status', $request->status); 
             }
 
             $users = $q->orderBy('role')->orderBy('name')->paginate(25)->withQueryString();
 
-            // optionally eager load current month's work schedule
+            
             $month = now()->month; $year = now()->year;
             $schedules = WorkSchedule::where('month', $month)->where('year', $year)
                 ->whereIn('user_id', $users->pluck('id')->toArray())->get()->keyBy('user_id');
@@ -46,30 +44,27 @@ class AvailabilityController extends Controller
         }
     }
 
-    /**
-     * Toggle availability for current user (driver/guide)
-     * body: none
-     */
+    
     public function toggle(Request $request)
     {
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            // ensure role is driver or guide (route middleware already ensures this)
+            
             if (! in_array($user->role, ['driver','guide'])) {
                 abort(403, 'Unauthorized');
             }
 
-            // flip: if currently online -> offline, else online
+            
             $newStatus = $user->status === 'online' ? 'offline' : 'online';
 
-            // optional: if going online, ensure not exceeding monthly limit? No — just toggle.
+            
             $user->status = $newStatus;
             $user->save();
 
             DB::commit();
 
-            // optional: broadcast event here (NewAvailabilityChanged)
+            
             return redirect()->back()->with('success','Status Anda: '.$newStatus);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -78,10 +73,7 @@ class AvailabilityController extends Controller
         }
     }
 
-    /**
-     * Force change user's status (admin/super_admin). Optional: staff can not force.
-     * Request: POST to /availability/{user}/force with 'status' => 'online'|'offline'
-     */
+    
     public function forceChange(Request $request, User $user)
     {
         $request->validate([

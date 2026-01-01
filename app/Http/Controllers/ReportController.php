@@ -16,19 +16,17 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    /**
-     * Index: otomatis arahkan ke laporan sesuai role
-     */
+    
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // Jika admin/staff → tampilkan laporan sistem
+        
         if (in_array($user->role, ['admin', 'super_admin', 'staff'])) {
             return $this->adminReport($request);
         }
 
-        // Jika driver/guide → tampilkan laporan pribadi
+        
         if (in_array($user->role, ['driver', 'guide'])) {
             return $this->personalReport($request);
         }
@@ -36,16 +34,16 @@ class ReportController extends Controller
         abort(403, 'Laporan tidak tersedia untuk role Anda.');
     }
 
-    // ========================================================================
-    // 🔹 LAPORAN SISTEM (Admin/Staff)
-    // ========================================================================
+    
+    
+    
 
     private function adminReport(Request $request)
     {
         $year  = $request->query('year', date('Y'));
         $month = $request->query('month', null);
 
-        // Orders per bulan
+        
         $ordersQuery = Order::select(
                 DB::raw("MONTH(pickup_time) as month"),
                 DB::raw("COUNT(*) as total")
@@ -61,7 +59,7 @@ class ReportController extends Controller
             $ordersPerMonth[$m] = $row ? (int) $row->total : 0;
         }
 
-        // Assignment accepted per bulan
+        
         $assignAccepted = Assignment::select(
                 DB::raw("MONTH(assigned_at) as month"),
                 DB::raw("COUNT(*) as total")
@@ -77,7 +75,7 @@ class ReportController extends Controller
             $acceptedPerMonth[$m] = $row ? (int) $row->total : 0;
         }
 
-        // Product usage (by accepted assignments)
+        
         $productUsage = Product::select(
                 'products.id',
                 'products.name',
@@ -90,7 +88,7 @@ class ReportController extends Controller
             ->groupBy('products.id', 'products.name')
             ->get();
 
-        // Assignment by status (filter opsional bulan)
+        
         $assignmentsByStatus = Assignment::select('status', DB::raw('count(*) as total'))
             ->when($year, function ($q) use ($year) {
                 $q->whereYear('assigned_at', $year);
@@ -115,15 +113,15 @@ class ReportController extends Controller
         ));
     }
 
-    // ========================================================================
-    // 🔹 LAPORAN PRIBADI (Driver/Guide)
-    // ========================================================================
+    
+    
+    
 
     private function personalReport(Request $request)
     {
         $user = Auth::user();
 
-        // Default: bulan ini
+        
         $start = $request->filled('start')
             ? Carbon::parse($request->start)->startOfDay()
             : now()->startOfMonth();
@@ -132,7 +130,7 @@ class ReportController extends Controller
             ? Carbon::parse($request->end)->endOfDay()
             : now()->endOfMonth();
 
-        // Query assignment milik user
+        
         $query = Assignment::with(['order.product', 'order'])
             ->where(function ($q) use ($user) {
                 if ($user->role === 'driver') {
@@ -143,14 +141,14 @@ class ReportController extends Controller
             })
             ->whereBetween('assigned_at', [$start, $end]);
 
-        // Filter status (opsional)
+        
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         $assignments = $query->orderBy('assigned_at', 'desc')->get();
 
-        // Summary
+        
         $summary = [
             'total'     => $assignments->count(),
             'completed' => $assignments->where('status', 'completed')->count(),
@@ -159,12 +157,12 @@ class ReportController extends Controller
             'declined'  => $assignments->where('status', 'declined')->count(),
         ];
 
-        // Hitung jam kerja dari assignment completed
-        // Hitung jam kerja (Logic disamakan dengan Dashboard: Prioritas WorkSchedule)
+        
+        
         $usedHours = 0;
         $totalHours = 0;
 
-        // Loop setiap bulan dalam range
+        
         $curr = $start->copy()->startOfMonth(); 
         $limit = $end->copy()->startOfMonth();
 
@@ -172,7 +170,7 @@ class ReportController extends Controller
             $m = $curr->month;
             $y = $curr->year;
 
-            // Cek WorkSchedule
+            
             $ws = WorkSchedule::where('user_id', $user->id)
                 ->where('year', $y)
                 ->where('month', $m)
@@ -180,20 +178,20 @@ class ReportController extends Controller
 
             if ($ws) {
                 $usedHours += (float) $ws->used_hours;
-                $totalHours += (float) $ws->total_hours; // asumsi kolom ini ada/dipakai
+                $totalHours += (float) $ws->total_hours; 
             } else {
-                // Fallback manual jika belum ada record WorkSchedule
+                
                 $monthlyLimit = $user->monthly_work_limit ?? 200;
                 $totalHours += $monthlyLimit;
 
-                // Hitung manual assignments di bulan $m/$y
-                // Filter assignments di bulan ini
+                
+                
                 $monthStart = $curr->copy()->startOfMonth();
                 $monthEnd   = $curr->copy()->endOfMonth();
                 
                 $manualMinutes = 0;
-                // Kita gunakan collection $assignments yang sudah di-query (ini assignment rentang waktu dipilih)
-                // Filter lagi yang status completed DAN assigned_at di bulan ini
+                
+                
                 $inMonth = $assignments->filter(function($a) use ($monthStart, $monthEnd) {
                      return $a->status === 'completed' && 
                             $a->assigned_at >= $monthStart && 
@@ -212,14 +210,14 @@ class ReportController extends Controller
             $curr->addMonth();
         }
 
-        // Fix logic kalau $totalHours 0 (misal user baru)
+        
         if ($totalHours == 0) $totalHours = 200;
 
         $usagePercent = $totalHours > 0
             ? min(100, round(($usedHours / $totalHours) * 100))
             : 0;
 
-        // Data chart: per hari (total vs completed)
+        
         $chartData = $assignments
             ->groupBy(function ($item) {
                 return Carbon::parse($item->assigned_at)->format('Y-m-d');
@@ -247,9 +245,9 @@ class ReportController extends Controller
         ));
     }
 
-    // ========================================================================
-    // 🔹 EXPORT - ADMIN
-    // ========================================================================
+    
+    
+    
 
     public function exportExcel(Request $request)
     {
@@ -288,9 +286,9 @@ class ReportController extends Controller
         return $pdf->download($fileName);
     }
 
-    // ========================================================================
-    // 🔹 EXPORT - DRIVER/GUIDE
-    // ========================================================================
+    
+    
+    
 
     public function exportPersonalPdf(Request $request)
     {
@@ -379,7 +377,7 @@ class ReportController extends Controller
         }
 
         $callback = function () use ($headers, $rows) {
-            $file = fopen('php://output', 'w');
+            $file = fopen('php://output', 'w');//output', 'w');
             fputcsv($file, $headers);
             foreach ($rows as $row) {
                 fputcsv($file, $row);
@@ -391,9 +389,9 @@ class ReportController extends Controller
         return response()->streamDownload($callback, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    // ========================================================================
-    // 🔹 HELPER
-    // ========================================================================
+    
+    
+    
 
     protected function authorizeExport()
     {

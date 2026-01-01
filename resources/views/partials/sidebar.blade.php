@@ -4,13 +4,13 @@
 @endphp
 
 <div class="h-full sidebar-scroll overflow-y-auto p-6 bg-linear-to-b from-red-600 via-red-700 to-red-800">
-  {{-- Header Section --}}
+  
   <div class="mb-8 pb-4 border-b border-red-500/30">
     <h2 class="text-white font-bold text-lg tracking-wide">JTB Tours</h2>
     <p class="text-red-200 text-xs mt-1">Management System</p>
   </div>
 
-  {{-- Menu Section --}}
+  
   <div>
     <div class="text-xs text-red-200/70 uppercase mb-4 font-semibold tracking-wider">Navigation</div>
 

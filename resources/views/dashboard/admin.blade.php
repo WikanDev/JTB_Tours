@@ -456,7 +456,6 @@
   });
 </script>
 
-
 @if(auth()->check() && auth()->user()->role === 'staff')
 <script>
   (function () {

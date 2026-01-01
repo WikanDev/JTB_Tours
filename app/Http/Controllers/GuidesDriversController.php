@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class GuidesDriversController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index(Request $request)
     {
         try {
@@ -29,8 +27,8 @@ class GuidesDriversController extends Controller
                 $query->where('role', $request->role);
             }
 
-            // Eager load active assignments to see what they are doing NOW
-            // We consider 'in_progress' and 'accepted' as active, though 'in_progress' is the most relevant for "currently doing"
+            
+            
             $users = $query->with(['assignmentsAsDriver' => function($q) {
                                 $q->whereIn('status', ['in_progress', 'accepted'])
                                   ->with('order', 'vehicle')

@@ -146,7 +146,6 @@
   </div>
 </div>
 
-
 <div x-data="availabilityModal()" x-cloak x-show="open" class="fixed inset-0 z-50 flex items-center justify-center">
   <div class="fixed inset-0 bg-black/40" @click="close()"></div>
   <div class="bg-white rounded shadow-lg max-w-lg w-full p-4 z-50">

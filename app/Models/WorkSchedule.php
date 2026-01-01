@@ -27,13 +27,13 @@ class WorkSchedule extends Model
         return $this->belongsTo(User::class);
     }
 
-    // helper to compute remaining hours
+    
     public function remainingHours(): int
     {
         return max(0, $this->total_hours - $this->used_hours);
     }
 
-    // scope to quickly get schedule for month/year
+    
     public function scopeForMonth($query, int $month, int $year)
     {
         return $query->where('month', $month)->where('year', $year);

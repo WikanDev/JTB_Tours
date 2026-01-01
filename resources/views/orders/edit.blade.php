@@ -137,8 +137,6 @@
         </div>
         <input type="hidden" name="passengers" x-model="totalPassengers">
 
-
-
         
         <div class="border p-4 rounded bg-gray-50">
             <div class="flex justify-between items-center mb-2">

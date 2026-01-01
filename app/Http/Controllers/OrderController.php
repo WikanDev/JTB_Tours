@@ -24,9 +24,7 @@ class OrderController extends Controller
         ], $extra);
     }
 
-    /**
-     * Display a listing of the orders with optional filters.
-     */
+    
     public function index(Request $request)
     {
         Log::info('OrderController@index accessed', $this->logContext([
@@ -113,9 +111,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new order.
-     */
+    
     public function create()
     {
         Log::info('OrderController@create accessed', $this->logContext());
@@ -141,9 +137,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Store a newly created order in storage.
-     */
+    
     public function store(Request $request)
     {
         Log::info('OrderController@store accessed', $this->logContext([
@@ -182,7 +176,7 @@ class OrderController extends Controller
             $babies   = $validated['babies']   ?? 0;
             $totalPassengers = $adults + $children + $babies;
 
-            // Validate passenger capacity
+            
             if ($product && $product->capacity && $totalPassengers > $product->capacity) {
                 return redirect()->back()->withInput()->with(
                     'error',
@@ -229,17 +223,17 @@ class OrderController extends Controller
                 'status' => $order->status
             ]));
 
-            // ✅ Create Assignments based on vehicle_count
+            
             $vehicleIds = $validated['vehicle_ids'] ?? [];
             $count = max(1, (int)$order->vehicle_count);
 
             for ($i = 0; $i < $count; $i++) {
                 \App\Models\Assignment::create([
                     'order_id'    => $order->id,
-                    'vehicle_id'  => $vehicleIds[$i] ?? null, // Assign vehicle if selected
+                    'vehicle_id'  => $vehicleIds[$i] ?? null, 
                     'status'      => 'pending',
                     'assigned_by' => Auth::id(),
-                    // 'assigned_at' => now(), // Optional: only if directly assigned
+                    
                 ]);
             }
 
@@ -248,7 +242,7 @@ class OrderController extends Controller
                 'count' => $count
             ]));
 
-            // 🔔 Kirim Notifikasi ke Staff jika pembuat adalah Admin
+            
             $user = auth()->user();
             if ($user && in_array($user->role, ['admin', 'super_admin'])) {
                 $staffUsers = \App\Models\User::where('role', 'staff')->get();
@@ -265,16 +259,14 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Order.store error: ' . $e->getMessage(), [
-                'payload' => Arr::except($validated, ['note']), // hindari log note sensitif
+                'payload' => Arr::except($validated, ['note']), 
                 'trace'   => $e->getTraceAsString()
             ] + $this->logContext());
             return redirect()->back()->withInput()->with('error', 'Gagal membuat order.');
         }
     }
 
-    /**
-     * Display the specified order.
-     */
+    
     public function show(Order $order)
     {
         Log::info('OrderController@show accessed', $this->logContext([
@@ -299,9 +291,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified order.
-     */
+    
     public function edit(Order $order)
     {
         Log::info('OrderController@edit accessed', $this->logContext([
@@ -329,9 +319,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Update the specified order in storage.
-     */
+    
     public function update(Request $request, Order $order)
     {
         Log::info('OrderController@update accessed', $this->logContext([
@@ -357,10 +345,10 @@ class OrderController extends Controller
             'vehicle_count'              => 'nullable|integer|min:1',
             'note'                       => 'nullable|string|max:2000',
             'vehicle_ids'                => 'nullable|array',
-            'vehicle_ids.*'              => 'numeric|exists:vehicles,id', // ✅ numeric allows strings "1"
+            'vehicle_ids.*'              => 'numeric|exists:vehicles,id', 
         ]);
 
-        // ✅ Pastikan vehicle_ids array integer
+        
         $validated['vehicle_ids'] = array_map('intval', $validated['vehicle_ids'] ?? []);
 
         Log::info('OrderController@update validation passed', $this->logContext([
@@ -404,10 +392,10 @@ class OrderController extends Controller
                 $validated['estimated_duration_minutes'] = 60;
             }
 
-            // ✅ Ganti array_except → Arr::except
+            
             $order->update(Arr::except($validated, ['vehicle_ids']));
 
-            // ✅ Sync relasi kendaraan
+            
             $order->vehicles()->sync($vehicleIds);
 
             DB::commit();
@@ -431,9 +419,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Remove the specified order from storage.
-     */
+    
     public function destroy(Order $order)
     {
         Log::info('OrderController@destroy accessed', $this->logContext([
@@ -469,9 +455,7 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * AJAX endpoint untuk staff: cek order baru.
-     */
+    
     public function checkLatest(Request $request)
     {
         $user = Auth::user();

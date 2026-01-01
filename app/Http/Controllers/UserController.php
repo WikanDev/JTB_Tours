@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /**
-     * List users with optional role & search filter.
-     */
+    
     public function index(Request $request)
     {
         try {
@@ -34,7 +32,7 @@ class UserController extends Controller
 
             $users = $q->orderBy('role')->orderBy('name')->paginate(20)->withQueryString();
 
-            // roles options for forms
+            
             $roles = ['super_admin','admin','staff','driver','guide'];
 
             return view('users.index', compact('users','roles'));
@@ -44,9 +42,7 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Show create form.
-     */
+    
     public function create()
     {
         try {
@@ -58,9 +54,7 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Store new user.
-     */
+    
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -75,16 +69,16 @@ class UserController extends Controller
 
         DB::beginTransaction();
         try {
-            // defaults
+            
             $data['used_hours'] = 0;
             $data['status'] = in_array($data['role'], ['driver','guide']) ? 'offline' : 'offline';
 
-            // If monthly_work_limit not set for non driver/guide, keep null or 0
+            
             if (!isset($data['monthly_work_limit'])) {
                 $data['monthly_work_limit'] = $data['role'] === 'driver' || $data['role'] === 'guide' ? 200 : null;
             }
 
-            // Create user - assume User model hashes password in mutator
+            
             User::create($data);
 
             DB::commit();
@@ -96,9 +90,7 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Note: Show method not required by UI (we use modal). Kept for compatibility.
-     */
+    
     public function show(User $user)
     {
         try {
@@ -109,9 +101,7 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Edit form
-     */
+    
     public function edit(User $user)
     {
         try {
@@ -123,9 +113,7 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Update user
-     */
+    
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
@@ -144,12 +132,12 @@ class UserController extends Controller
                 unset($data['password']);
             }
 
-            // If role changed away from driver/guide, clear monthly_work_limit and status
+            
             if (isset($data['role']) && !in_array($data['role'], ['driver','guide'])) {
                 $data['monthly_work_limit'] = null;
                 $data['status'] = $user->status ?? 'offline';
             } else {
-                // Ensure monthly_work_limit default if missing for drivers/guides
+                
                 if (in_array($data['role'] ?? $user->role, ['driver','guide']) && !isset($data['monthly_work_limit'])) {
                     $data['monthly_work_limit'] = $user->monthly_work_limit ?? 200;
                 }
@@ -166,19 +154,17 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Delete user
-     */
+    
     public function destroy(User $user)
     {
         DB::beginTransaction();
         try {
-            // prevent deleting self
+            
             if (Auth::check() && Auth::id() === $user->id) {
                 return redirect()->back()->with('error','Kamu tidak bisa menghapus akun sendiri.');
             }
 
-            // protect super admin last
+            
             if ($user->role === 'super_admin') {
                 $count = User::where('role','super_admin')->count();
                 if ($count <= 1) {
@@ -186,7 +172,7 @@ class UserController extends Controller
                 }
             }
 
-            // prevent deletion if user has assignments
+            
             $hasAssignments = $user->assignmentsAsDriver()->exists() || $user->assignmentsAsGuide()->exists();
             if ($hasAssignments) {
                 return redirect()->back()->with('error','Tidak dapat menghapus user yang memiliki assignment.');

@@ -24,8 +24,7 @@
     </div>
   </div>
 
-
-  {{-- Flash messages now handled by global notification card component --}}
+  
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="bg-white p-4 rounded shadow">
@@ -56,7 +55,6 @@
     </div>
   </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

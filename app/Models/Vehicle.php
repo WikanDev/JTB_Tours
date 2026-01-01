@@ -21,7 +21,7 @@ class Vehicle extends Model
         'capacity' => 'integer',
     ];
 
-    // Scope helper
+    
     public function scopeAvailable($query, $start = null, $durationMinutes = 0)
     {
         if (!$start) {
@@ -31,14 +31,14 @@ class Vehicle extends Model
         $startTime = \Carbon\Carbon::parse($start);
         $endTime = $startTime->copy()->addMinutes($durationMinutes);
 
-        // Filter vehicles that do NOT have overlapping assignments
-        // And are not in maintenance
+        
+        
         return $query->where('status', '!=', 'maintenance')
                      ->whereDoesntHave('assignments', function ($q) use ($startTime, $endTime) {
             $q->whereIn('status', ['accepted', 'in_progress'])
               ->whereHas('order', function ($orderQ) use ($startTime, $endTime) {
                   $orderQ->where(function ($sub) use ($startTime, $endTime) {
-                       // Overlap: Order Start <= Request End AND Order End >= Request Start
+                       
                        $sub->where('pickup_time', '<=', $endTime)
                            ->whereRaw("DATE_ADD(pickup_time, INTERVAL estimated_duration_minutes MINUTE) >= ?", [$startTime]);
                   });
@@ -54,21 +54,21 @@ class Vehicle extends Model
         $conflicts = $this->assignments()
             ->whereIn('status', ['accepted', 'in_progress'])
             ->whereHas('order', function ($q) use ($startTime, $endTime) {
-                // Check overlap based on order times
-                 // We need to access order pickup_time and estimated_duration_minutes
-                // Note: This logic assumes assignments are linked to orders which hold the time
+                
+                 
+                
                 $q->where(function($sub) use ($startTime, $endTime) {
-                    // Logic: Order Start < Requested End AND Order End > Requested Start
-                    // Since specific SQL might be complex here, simpler to fetch overlapping in PHP if collection is small, 
-                    // but for Model method we prefer query.
-                    // Let's rely on the scope logic above which is more robust for SQL.
+                    
+                    
+                    
+                    
                 });
             })->count();
             
-        // Alternative: Re-use the scope logic on this instance
-        // But scope is for Builder.
         
-        // Let's implement a direct check
+        
+        
+        
         $conflicting = $this->assignments()
             ->whereIn('status', ['accepted', 'in_progress'])
             ->get()

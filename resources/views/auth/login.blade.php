@@ -14,7 +14,7 @@
   </style>
 </head>
 <body class="bg-gray-50">
-  {{-- Include flash notification card --}}
+  
   <x-notification-card />
   
   <section class="min-h-screen flex flex-col items-center justify-center px-4 py-8">

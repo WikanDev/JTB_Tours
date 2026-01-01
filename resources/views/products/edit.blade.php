@@ -140,7 +140,6 @@
         </div>
     </div>
 
-
     <div class="pt-6 border-t flex justify-end space-x-3">
       <x-secondary-button :href="route('products.index')">Batal</x-secondary-button>
       <x-primary-button type="submit">Update Product</x-primary-button>

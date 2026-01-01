@@ -26,7 +26,7 @@ class ProductBranch extends Model
         return $this->belongsTo(Product::class);
     }
 
-    // Accessor for formatted duration (e.g. "2h 30m")
+    
     public function getDurationHumanAttribute()
     {
         $hours = floor($this->duration_minutes / 60);

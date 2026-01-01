@@ -12,7 +12,7 @@ class Product extends Model
         'capacity',
         'description',
         "hour",
-        // Exclusive fields
+        
         'is_exclusive',
         'snack',
         'water',

@@ -1,12 +1,5 @@
 
-{{-- Notification card is now included globally in layouts/app.blade.php --}}
 
-
-{{-- Generic modal component (Tailwind + Alpine)
-  Usage:
-    <div x-data="{ open:false, payload: {} }" x-show="open"> ... </div>
-  We provide a small helper modal layout below.
---}}
 @push('scripts')
 <script>
   // helper to open modal with data
