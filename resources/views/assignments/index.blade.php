@@ -27,12 +27,12 @@
 
     <div>
       <label class="block text-sm">Driver</label>
-      <input name="driver_id" value="{{ request('driver_id') }}" placeholder="driver id" class="mt-1 block w-full rounded border-gray-200" />
+      <x-text-input name="driver_id" value="{{ request('driver_id') }}" placeholder="driver id" />
     </div>
 
     <div>
       <label class="block text-sm">From</label>
-      <input name="from" type="date" value="{{ request('from') }}" class="mt-1 block w-full rounded border-gray-200" />
+      <x-text-input name="from" type="date" value="{{ request('from') }}" />
     </div>
 
     <div class="flex items-end">

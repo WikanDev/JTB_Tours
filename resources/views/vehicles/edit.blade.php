@@ -5,7 +5,7 @@
 
 <div class="max-w-2xl mx-auto p-4">
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-semibold">Edit Kendaraan</h1>
+    <h1 class="text-2xl font-semibold">Edit Kendaraan {{ $vehicle->plate_number }}</h1>
     <x-secondary-button :href="route('vehicles.index')">Kembali</x-secondary-button>
   </div>
 

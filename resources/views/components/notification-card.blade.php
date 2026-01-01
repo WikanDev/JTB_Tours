@@ -3,15 +3,23 @@
 <div 
   x-data="{ show: true }" 
   x-show="show"
-  x-init="setTimeout(() => show = false, 5000)"
-  class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black bg-opacity-50 backdrop-blur-sm"
+  x-init="
+    setTimeout(() => show = false, 5000);
+    if (window.performance && window.performance.getEntriesByType) {
+      const navEntries = window.performance.getEntriesByType('navigation');
+      if (navEntries.length > 0 && navEntries[0].type === 'back_forward') {
+        show = false;
+      }
+    }
+  "
+  class="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm"
   x-transition:enter="transition ease-out duration-300"
   x-transition:enter-start="opacity-0"
   x-transition:enter-end="opacity-100"
   x-transition:leave="transition ease-in duration-200"
   x-transition:leave-start="opacity-100"
   x-transition:leave-end="opacity-0"
-  style="display: none;"
+  style="display: none; background-color: rgba(0, 0, 0, 0.5);"
 >
   <div 
     class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"

@@ -40,7 +40,7 @@ class AssignmentController extends Controller
                 $q->whereDate('assigned_at', '<=', $request->query('to'));
             }
 
-            $assignments = $q->orderBy('assigned_at', 'desc')->paginate(25)->withQueryString();
+            $assignments = $q->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
 
             return view('assignments.index', compact('assignments'));
         } catch (\Throwable $e) {
@@ -191,28 +191,40 @@ class AssignmentController extends Controller
 
                 // Check Vehicle availability
                 $vehicle = Vehicle::findOrFail($data['vehicle_id']);
-                // Note: checkVehicleOverlap needs to be robust if we are assigning multiple vehicles to SAME order.
-                // The order time is the same. The logic checks if *other* assignments overlap.
-                // Since these new assignments are not in DB yet, they won't conflict with each other via DB query check.
-                // But we must ensure user didn't pick SAME vehicle twice in the form.
-                // Frontend should prevent or we check usage in array. 
-                // However, checkVehicleOverlap checks DB. 
+                
+                // Exclude current order from overlap check handled in checkVehicleOverlap now
                 if ($this->checkVehicleOverlap($vehicle->id, $order)) {
                      DB::rollBack();
                      return redirect()->back()->withInput()->with('error', "Kendaraan {$vehicle->plate_number} sedang digunakan pada estimasi jam tersebut.");
                 }
                 
-                // Create Assignment
-                $assignment = Assignment::create([
-                    'order_id'     => $order->id,
-                    'driver_id'    => $driver->id,
-                    'guide_id'     => $guideId,
-                    'vehicle_id'   => $vehicle->id,
-                    'assigned_by'  => Auth::id(),
-                    'status'       => 'pending',
-                    'assigned_at'  => now(),
-                    'note'         => $data['note'] ?? null,
-                ]);
+                // Try to reuse existing empty assignment (from auto-creation)
+                $assignment = Assignment::where('order_id', $order->id)
+                    ->where('vehicle_id', $vehicle->id)
+                    ->whereNull('driver_id')
+                    ->where('status', 'pending')
+                    ->first();
+
+                if ($assignment) {
+                    $assignment->update([
+                        'driver_id'    => $driver->id,
+                        'guide_id'     => $guideId,
+                        'assigned_by'  => Auth::id(),
+                        'assigned_at'  => now(),
+                        'note'         => $data['note'] ?? null,
+                    ]);
+                } else {
+                    $assignment = Assignment::create([
+                        'order_id'     => $order->id,
+                        'driver_id'    => $driver->id,
+                        'guide_id'     => $guideId,
+                        'vehicle_id'   => $vehicle->id,
+                        'assigned_by'  => Auth::id(),
+                        'status'       => 'pending',
+                        'assigned_at'  => now(),
+                        'note'         => $data['note'] ?? null,
+                    ]);
+                }
 
                 // 🔔 Notify Driver
                 $driver->notify(new \App\Notifications\NewAssignmentNotification($assignment));
@@ -501,16 +513,16 @@ class AssignmentController extends Controller
     /**
      * Tampilkan detail assignment
      */
-    // public function show(Assignment $assignment)
-    // {
-    //     try {
-    //         $assignment->load(['order.product', 'driver', 'guide', 'assignedBy']);
-    //         return view('assignments.show', compact('assignment'));
-    //     } catch (\Throwable $e) {
-    //         Log::error('Assignment.show error: ' . $e->getMessage(), ['assignment_id' => $assignment->id]);
-    //         return redirect()->back()->with('error', 'Gagal membuka detail assignment.');
-    //     }
-    // }
+    public function show(Assignment $assignment)
+    {
+        try {
+            $assignment->load(['order.product', 'driver', 'guide', 'assignedBy']);
+            return view('assignments.show', compact('assignment'));
+        } catch (\Throwable $e) {
+            Log::error('Assignment.show error: ' . $e->getMessage(), ['assignment_id' => $assignment->id]);
+            return redirect()->back()->with('error', 'Gagal membuka detail assignment.');
+        }
+    }
 
     /**
      * Hapus assignment
@@ -779,6 +791,7 @@ class AssignmentController extends Controller
         // But we can approximate using the related Order's pickup/arrival.
         
         $overlaps = Assignment::where('vehicle_id', $vehicleId)
+            ->where('order_id', '!=', $order->id) // ✅ Exclude current order to allow assigning
             ->whereIn('status', ['pending', 'accepted']) // completed ones strictly speaking are done, but maybe buffer? Let's check active ones.
             ->whereHas('order', function($q) use ($pickup, $arrival) {
                  // Order time interval: [start, end]

@@ -229,6 +229,25 @@ class OrderController extends Controller
                 'status' => $order->status
             ]));
 
+            // ✅ Create Assignments based on vehicle_count
+            $vehicleIds = $validated['vehicle_ids'] ?? [];
+            $count = max(1, (int)$order->vehicle_count);
+
+            for ($i = 0; $i < $count; $i++) {
+                \App\Models\Assignment::create([
+                    'order_id'    => $order->id,
+                    'vehicle_id'  => $vehicleIds[$i] ?? null, // Assign vehicle if selected
+                    'status'      => 'pending',
+                    'assigned_by' => Auth::id(),
+                    // 'assigned_at' => now(), // Optional: only if directly assigned
+                ]);
+            }
+
+            Log::info('Assignments created for order', $this->logContext([
+                'order_id' => $order->id,
+                'count' => $count
+            ]));
+
             // 🔔 Kirim Notifikasi ke Staff jika pembuat adalah Admin
             $user = auth()->user();
             if ($user && in_array($user->role, ['admin', 'super_admin'])) {

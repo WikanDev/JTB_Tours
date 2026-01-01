@@ -1,6 +1,5 @@
 
-{{-- Include the notification card component --}}
-<x-notification-card />
+{{-- Notification card is now included globally in layouts/app.blade.php --}}
 
 
 {{-- Generic modal component (Tailwind + Alpine)

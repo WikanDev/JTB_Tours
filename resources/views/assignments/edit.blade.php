@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto p-4">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold">Edit Assignment #{{ $assignment->id }}</h1>
+        <h1 class="text-2xl font-semibold">Edit Assignment {{ $order->customer_name }}</h1>
         <a href="{{ route('assignments.index') }}" class="text-gray-500 hover:text-gray-700">Kembali</a>
     </div>
 

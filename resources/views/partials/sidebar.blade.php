@@ -78,6 +78,16 @@
 
       @if($isAuth && in_array($role, ['super_admin','staff']))
         <li>
+          <a href="{{ Route::has('guides-drivers.index') ? route('guides-drivers.index') : '#' }}"
+             class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 {{ request()->routeIs('guides-drivers.*') ? 'bg-white text-red-700 shadow-lg font-semibold' : 'text-white hover:bg-red-900 hover:pl-5' }}">
+            <i class="ph ph-steering-wheel text-lg" aria-hidden="true"></i>
+            <span class="text-sm">Guide & Driver</span>
+          </a>
+        </li>
+      @endif
+
+      @if($isAuth && in_array($role, ['super_admin','staff']))
+        <li>
           <a href="{{ Route::has('products.index') ? route('products.index') : '#' }}"
              class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 {{ request()->routeIs('products.*') ? 'bg-white text-red-700 shadow-lg font-semibold' : 'text-white hover:bg-red-900 hover:pl-5' }}">
             <i class="ph ph-package text-lg" aria-hidden="true"></i>

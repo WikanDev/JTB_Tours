@@ -153,6 +153,12 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
+    // Guide & Drivers List
+    Route::middleware(['role:super_admin,admin,staff'])->group(function () {
+        Route::get('guides-drivers', [App\Http\Controllers\GuidesDriversController::class, 'index'])
+            ->name('guides-drivers.index');
+    });
+
     // Notifications
     Route::middleware(['auth'])->group(function () {
         Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');

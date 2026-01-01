@@ -178,7 +178,7 @@ class VehicleController extends Controller
             // Check current active assignment to see if "in_use" and who is driving.
             $activeAssignment = \App\Models\Assignment::with(['driver', 'order'])
                                 ->where('vehicle_id', $vehicle->id)
-                                ->whereIn('status', ['accepted', 'pending']) // pending is effectively reserved
+                                ->whereIn('status', ['accepted', 'pending', 'in_progress']) // pending is effectively reserved, in_progress means currently driving
                                 ->orderBy('assigned_at', 'asc')
                                 ->first();
 

@@ -21,7 +21,7 @@
   <form method="GET" class="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
     <div>
       <label class="block text-xs text-gray-600">Cari</label>
-      <input name="q" value="{{ request('q') }}" placeholder="nama / telepon / produk" class="mt-1 block w-full rounded border-gray-200" />
+      <x-text-input name="q" value="{{ request('q') }}" placeholder="nama / telepon / produk" />
     </div>
 
     <div>
