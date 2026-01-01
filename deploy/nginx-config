@@ -1,0 +1,96 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name jtb-tours.wikandev.com;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name jtb-tours.wikandev.com;
+
+    # SSL Configuration (will be updated by Certbot)
+    ssl_certificate /etc/letsencrypt/live/jtb-tours.wikandev.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/jtb-tours.wikandev.com/privkey.pem;
+    
+    # SSL Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Root directory
+    root /var/www/jtb-tours/current/public;
+    index index.php index.html;
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Disable directory listing
+    autoindex off;
+
+    # Logging
+    access_log /var/log/nginx/jtb-tours-access.log;
+    error_log /var/log/nginx/jtb-tours-error.log;
+
+    # Gzip Compression
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/rss+xml font/truetype font/opentype application/vnd.ms-fontobject image/svg+xml;
+
+    # Client max body size (for file uploads)
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+        
+        # FastCGI settings
+        fastcgi_buffer_size 32k;
+        fastcgi_buffers 8 16k;
+        fastcgi_connect_timeout 60s;
+        fastcgi_send_timeout 60s;
+        fastcgi_read_timeout 60s;
+    }
+
+    # Cache static files
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Deny access to sensitive files
+    location ~ /(?:composer\.json|composer\.lock|package\.json|package-lock\.json|\.env)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Prevent access to storage files directly
+    location ^~ /storage/ {
+        internal;
+    }
+}

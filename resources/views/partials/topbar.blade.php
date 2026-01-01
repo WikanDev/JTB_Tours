@@ -74,7 +74,7 @@
                             @csrf
                             <button 
                                 type="submit" 
-                                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+                                class="w-full text-left px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-900"
                             >
                                 Logout
                             </button>
