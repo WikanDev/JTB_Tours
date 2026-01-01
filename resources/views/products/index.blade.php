@@ -32,7 +32,9 @@
       <tbody class="divide-y divide-gray-100">
         @forelse($products as $p)
           <tr>
-            <td class="px-4 py-3 text-sm">{{ $p->id }}</td>
+            <td class="px-4 py-3 text-sm">
+              {{ ($products->currentPage() - 1) * $products->perPage() + $loop->iteration }}
+            </td>
             <td class="px-4 py-3 text-sm">{{ $p->name }}</td>
             <td class="px-4 py-3 text-sm">{{ $p->capacity }}</td>
             <td class="px-4 py-3 text-sm truncate max-w-xl">{{ $p->description ?? '-' }}</td>

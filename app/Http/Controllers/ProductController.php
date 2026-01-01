@@ -23,7 +23,7 @@ class ProductController extends Controller
                 });
             }
 
-            $products = $q->with('branches')->orderBy('name')->paginate(20)->withQueryString();
+            $products = $q->with('branches')->latest()->paginate(20)->withQueryString();
 
             return view('products.index', compact('products'));
         } catch (\Throwable $e) {

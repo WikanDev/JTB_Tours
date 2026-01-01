@@ -19,8 +19,8 @@
         <button class="bg-blue-600 text-white px-3 py-2 rounded">Filter</button>
       </form>
 
-      <a href="{{ route('reports.export.excel', ['year'=>$year, 'month'=>$month]) }}" class="bg-green-600 text-white px-3 py-2 rounded">Export Excel</a>
-      <a href="{{ route('reports.export.pdf', ['year'=>$year, 'month'=>$month]) }}" class="bg-gray-700 text-white px-3 py-2 rounded">Export PDF</a>
+      <a href="{{ route('reports.export.excel', ['year'=>$year, 'month'=>$month]) }}" class="text-center bg-green-600 text-white flex items-center justify-center px-3 py-2 rounded-lg"><span>Export Excel</span></a>
+      <a href="{{ route('reports.export.pdf', ['year'=>$year, 'month'=>$month]) }}" class="text-center bg-gray-700 text-white flex items-center justify-center px-3 py-2 rounded-lg"><span>Export PDF</span></a>
     </div>
   </div>
 
@@ -43,14 +43,9 @@
     </div>
 
     <div class="bg-white p-4 rounded shadow lg:col-span-2">
-      <h3 class="text-lg font-medium mb-2">Product Usage (Accepted Assignments) - {{ $year }}</h3>
-      <div class="flex items-center space-x-6">
-        <div class="w-48 h-48 shrink-0">
-          <canvas id="productPie" class="w-full h-full"></canvas>
-        </div>
-        <div class="flex-1">
-          <ul id="productLegend" class="text-sm"></ul>
-        </div>
+      <h3 class="text-lg font-medium mb-2">Product Usage (Accepted/Process/Completed) - {{ $year }}</h3>
+      <div class="w-full h-64">
+        <canvas id="productChart" class="w-full h-full"></canvas>
       </div>
     </div>
   </div>
@@ -60,9 +55,9 @@
 
 <script>
   // --- data from server (PHP -> JS)
-  const ordersPerMonth = {!! json_encode(array_values($ordersPerMonth)) !!}; // index 0..11
+  const ordersPerMonth = {!! json_encode(array_values($ordersPerMonth)) !!}; 
   const acceptedPerMonth = {!! json_encode(array_values($acceptedPerMonth)) !!};
-  const productUsage = {!! json_encode($productUsage->map(function($p){ return ['name'=>$p->name,'total'=> (int)$p->total]; })->values()) !!};
+  const productUsageData = {!! json_encode($productUsageData) !!};
 
   const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -102,7 +97,7 @@
       options: {
         responsive: true,
         // maintainAspectRatio true so chart respects its container height
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
           y: { beginAtZero: true, ticks: { precision:0 } }
         },
@@ -131,7 +126,7 @@
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         scales: {
           y: { beginAtZero: true, ticks: { precision:0 } }
         },
@@ -140,56 +135,48 @@
     });
   })();
 
-  // PRODUCT PIE chart
+  // PRODUCT BAR chart
   (function(){
-    destroyChartIfExists('productPie');
+    destroyChartIfExists('productChart');
 
-    const pieCtx = document.getElementById('productPie').getContext('2d');
-    const productLabels = productUsage.map(p => p.name);
-    const productData = productUsage.map(p => p.total);
+    const ctx = document.getElementById('productChart').getContext('2d');
+    const datasets = productUsageData.map((p, index) => {
+        // Simple color palette
+        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
+        const color = colors[index % colors.length];
+        
+        return {
+            label: p.name,
+            data: p.data,
+            backgroundColor: color,
+            borderWidth: 1
+        };
+    });
 
-    // Ensure Chart.js will auto generate colors by leaving backgroundColor empty.
-    // Chart.js v3+ will auto pick default colors for pie if backgroundColor omitted for each data point.
-    window._charts.productPie = new Chart(pieCtx, {
-      type: 'pie',
+    window._charts.productChart = new Chart(ctx, {
+      type: 'bar',
       data: {
-        labels: productLabels,
-        datasets: [{
-          data: productData,
-          borderWidth: 1,
-        }]
+        labels: monthLabels,
+        datasets: datasets
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } },
+            x: { 
+                ticks: { autoSkip: false },
+                grid: { display: false } 
+            }
+        },
         plugins: {
-          legend: { display: false } // we render custom legend
+          legend: { display: true }, // Show legend for products
+          tooltip: {
+             mode: 'index', 
+             intersect: false,
+          }
         }
       }
-    });
-
-    // render legend
-    const legendEl = document.getElementById('productLegend');
-    legendEl.innerHTML = ''; // clear first
-    productUsage.forEach((p, idx) => {
-      const li = document.createElement('li');
-      li.className = 'mb-2 flex items-center';
-
-      const color = window._charts.productPie.data.datasets[0].backgroundColor?.[idx] || getComputedStyle(document.documentElement).getPropertyValue('--tw-prose-code') || '#999';
-
-      const box = document.createElement('span');
-      box.style.display = 'inline-block';
-      box.style.width = '12px';
-      box.style.height = '12px';
-      box.style.background = color;
-      box.style.marginRight = '8px';
-      box.style.verticalAlign = 'middle';
-      box.className = 'flex-shrink-0';
-      li.appendChild(box);
-
-      const text = document.createTextNode(`${p.name} — ${p.total}`);
-      li.appendChild(text);
-      legendEl.appendChild(li);
     });
   })();
 

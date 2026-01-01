@@ -76,17 +76,32 @@ class ReportController extends Controller
         }
 
         
-        $productUsage = Product::select(
-                'products.id',
-                'products.name',
-                DB::raw('COUNT(orders.id) as total')
-            )
-            ->leftJoin('orders', 'products.id', '=', 'orders.product_id')
-            ->leftJoin('assignments', 'orders.id', '=', 'assignments.order_id')
-            ->where('assignments.status', 'accepted')
+        // 1. All products
+        $products = Product::select('id', 'name')->get();
+
+        // 2. Aggregate usage by product & month
+        $stats = DB::table('assignments')
+            ->join('orders', 'assignments.order_id', '=', 'orders.id')
+            ->select('orders.product_id', DB::raw('MONTH(assignments.assigned_at) as month'), DB::raw('COUNT(assignments.id) as total'))
             ->whereYear('assignments.assigned_at', $year)
-            ->groupBy('products.id', 'products.name')
+            ->whereIn('assignments.status', ['accepted', 'in_progress', 'completed'])
+            ->groupBy('orders.product_id', DB::raw('MONTH(assignments.assigned_at)'))
             ->get();
+
+        // 3. Transform for Chart
+        $productUsageData = [];
+        foreach ($products as $p) {
+            $monthlyData = array_fill(1, 12, 0); // keys 1..12
+            foreach ($stats as $s) {
+                if ($s->product_id == $p->id) {
+                    $monthlyData[$s->month] = (int)$s->total;
+                }
+            }
+            $productUsageData[] = [
+                'name' => $p->name,
+                'data' => array_values($monthlyData) // 0..11 index
+            ];
+        }
 
         
         $assignmentsByStatus = Assignment::select('status', DB::raw('count(*) as total'))
@@ -108,7 +123,8 @@ class ReportController extends Controller
             'month',
             'ordersPerMonth',
             'acceptedPerMonth',
-            'productUsage',
+            'acceptedPerMonth',
+            'productUsageData', // Changed from productUsage
             'assignmentsByStatus'
         ));
     }
