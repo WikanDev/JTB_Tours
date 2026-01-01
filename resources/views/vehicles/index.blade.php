@@ -44,6 +44,8 @@
       <tbody class="divide-y divide-gray-100">
         @forelse($vehicles as $v)
           @php
+            $activeAssign = $v->assignments->first();
+            
             // prepare safe JSON payload for onclick
             $payload = [
               'id' => $v->id,
@@ -54,6 +56,16 @@
               'capacity' => $v->capacity,
               'year' => $v->year,
               'status' => $v->status,
+              // Usage details
+              'driver_name' => $activeAssign?->driver?->name,
+              'customer_name' => $activeAssign?->order?->customer_name,
+              'passengers' => $activeAssign?->order?->passengers,
+              'pickup_location' => $activeAssign?->order?->pickup_location,
+              'destination' => $activeAssign?->order?->destination,
+              'pickup_time' => $activeAssign?->order?->pickup_time ? \Carbon\Carbon::parse($activeAssign->order->pickup_time)->format('d M H:i') : null,
+              'estimated_end_time' => ($activeAssign?->order?->pickup_time && $activeAssign->order->estimated_duration_minutes) 
+                  ? \Carbon\Carbon::parse($activeAssign->order->pickup_time)->addMinutes($activeAssign->order->estimated_duration_minutes)->format('d M H:i') 
+                  : null,
             ];
             // encode and escape quotes so it can be printed raw inside onclick attribute
             $payloadJson = htmlspecialchars(json_encode($payload, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
@@ -68,9 +80,15 @@
             <td class="px-4 py-3 text-sm">{{ $v->capacity }}</td>
             <td class="px-4 py-3 text-sm">{{ $v->year ?? '-' }}</td>
             <td class="px-4 py-3 text-sm">
-              <span class="px-2 py-1 rounded text-xs {{ $v->status === 'available' ? 'bg-green-100 text-green-800' : ($v->status==='in_use' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                {{ ucfirst(str_replace('_',' ', $v->status)) }}
-              </span>
+              @if($v->status === 'in_use')
+                <button onclick="openUsageModal({!! $payloadJson !!})" class="px-2! py-1! rounded text-xs bg-yellow-100 text-yellow-800 hover:bg-yellow-200 cursor-pointer underline decoration-dotted">
+                   In Use <i class="ph ph-info text-[10px] ml-1"></i>
+                </button>
+              @elseif($v->status === 'available')
+                <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">Available</span>
+              @else
+                <span class="px-2 py-1 rounded text-xs bg-red-100 text-red-800">{{ ucfirst($v->status) }}</span>
+              @endif
             </td>
             <td class="px-4 py-3 text-sm text-right">
               
@@ -112,7 +130,7 @@
   <div class="fixed inset-0 bg-black/40" @click="close()"></div>
   <div class="bg-white rounded-lg shadow-xl max-w-xl w-full p-6 z-50 transform transition-all">
     <div class="flex items-start justify-between border-b pb-3 mb-4">
-      <h3 class="text-xl font-bold text-gray-900">Vehicle #<span x-text="payload.id"></span></h3>
+      <h3 class="text-xl font-bold text-gray-900">Vehicle Info</h3>
       <button @click="close()" class="text-gray-400 hover:text-gray-600 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
@@ -166,6 +184,69 @@
   </div>
 </div>
 
+<!-- Modal In Use (Usage Details) -->
+<div x-data="usageModal()" x-init="init()" x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+  <div class="fixed inset-0 bg-black/40" @click="close()"></div>
+  <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-50 transform transition-all border-t-4 border-yellow-500">
+    <div class="flex items-start justify-between border-b pb-3 mb-4">
+      <div class="flex items-center gap-2">
+          <div class="p-2 bg-yellow-100 rounded-full text-yellow-600">
+            <i class="ph ph-steering-wheel text-xl"></i>
+          </div>
+          <div>
+              <h3 class="text-lg font-bold text-gray-900">Detail Penggunaan</h3>
+              <p class="text-xs text-gray-500" x-text="payload.brand + ' - ' + payload.plate"></p>
+          </div>
+      </div>
+      <button @click="close()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+        <div class="flex justify-between items-center border-b pb-2 mb-2">
+            <span class="text-gray-500">Customer</span>
+            <span class="font-bold text-gray-900 text-lg" x-text="payload.customer_name || '-'"></span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                 <span class="block text-xs text-gray-400 uppercase">Driver</span>
+                 <span class="text-sm font-semibold text-gray-800" x-text="payload.driver_name"></span>
+            </div>
+            <div class="text-right">
+                 <span class="block text-xs text-gray-400 uppercase">Penumpang</span>
+                 <span class="text-sm font-semibold text-gray-800" x-text="(payload.passengers || 0) + ' Orang'"></span>
+            </div>
+        </div>
+
+        <div class="mt-2 bg-blue-50 rounded p-3 border border-blue-100">
+            <div class="flex items-center gap-2 mb-2">
+                <i class="ph ph-clock text-blue-500"></i>
+                <span class="text-xs font-semibold text-blue-700">Waktu & Estimasi</span>
+            </div>
+            <div class="flex justify-between text-sm text-gray-700">
+                 <span>Mulai: <strong x-text="payload.pickup_time || '-'"></strong></span>
+                 <span>Selesai: <strong x-text="payload.estimated_end_time || '-'"></strong></span>
+            </div>
+        </div>
+
+        <div class="mt-2">
+            <span class="block text-xs text-gray-400 uppercase mb-1">Rute Perjalanan</span>
+            <div class="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded">
+                <div class="flex-1 font-medium text-gray-900" x-text="payload.pickup_location || 'Lokasi Jemput'"></div>
+                <i class="ph ph-arrow-right text-gray-400"></i>
+                <div class="flex-1 font-medium text-gray-900 text-right" x-text="payload.destination || 'Tujuan'"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 pt-4 border-t flex justify-end">
+      <button @click="close()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors font-medium">Tutup</button>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
   function vehicleModal(){
@@ -182,8 +263,27 @@
     }
   }
 
+  function usageModal(){
+    return {
+      open:false,
+      payload:{},
+      init(){
+        window.addEventListener('open-usage-modal', (e)=> {
+          this.payload = e.detail;
+          this.open = true;
+        });
+      },
+      close(){ this.open=false; this.payload={}; }
+    }
+  }
+
   function openVehicleModal(data){
     const evt = new CustomEvent('open-vehicle-modal', { detail: data });
+    window.dispatchEvent(evt);
+  }
+
+  function openUsageModal(data){
+    const evt = new CustomEvent('open-usage-modal', { detail: data });
     window.dispatchEvent(evt);
   }
 </script>

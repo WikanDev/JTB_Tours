@@ -38,7 +38,7 @@
       </div>
       <div class="mt-1">
         <span class="status-badge status-{{ $a->status }}">
-          {{ ucfirst($a->status) }}
+          {{ ucfirst(str_replace('_', ' ', $a->status)) }}
         </span>
         @if($a->workstart && in_array($a->status, ['accepted', 'completed']))
           <span class="text-xs text-gray-500 ml-2">Mulai: {{ \Carbon\Carbon::parse($a->workstart)->format('H:i') }}</span>

@@ -99,10 +99,10 @@
             <td class="px-4 py-3 whitespace-nowrap">{{ $o->summary_people ?? '-' }}</td>
 
             <td class="px-4 py-3">
-              <span class="px-2 py-1 rounded text-xs font-medium
+              <span class="px-2 py-1 rounded text-xs font-medium whitespace-nowrap
                 {{ $o->status == 'completed' ? 'bg-blue-100 text-blue-800' :
                    ($o->status=='assigned' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800') }}">
-                {{ ucfirst($o->status ?? 'pending') }}
+                {{ ucfirst(str_replace('_', ' ', $o->status ?? 'pending')) }}
               </span>
             </td>
 
@@ -214,7 +214,7 @@
                   'bg-green-100 text-green-800': payload.status === 'assigned',
                   'bg-blue-100 text-blue-800': payload.status === 'completed'
                 }"
-                x-text="payload.status"></span>
+                x-text="payload.status ? payload.status.replace('_', ' ') : ''"></span>
           </div>
        </div>
 

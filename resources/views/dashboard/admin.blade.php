@@ -244,10 +244,10 @@
                                 <div class="text-sm text-gray-900">{{ $order->passengers ?? 0 }} orang</div>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap
                                     {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' :
                                        ($order->status == 'assigned' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                    {{ ucfirst($order->status) }}
+                                    {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3">

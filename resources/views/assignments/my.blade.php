@@ -153,7 +153,7 @@
           </div>
           <div class="bg-gray-50 p-3 rounded">
              <span class="block text-xs font-semibold text-gray-500 uppercase">Status</span>
-             <span class="text-lg font-medium uppercase" 
+             <span class="text-lg font-medium uppercase whitespace-nowrap" 
                    :class="{
                      'text-yellow-700': payload.status === 'pending',
                      'text-green-700': payload.status === 'accepted',
@@ -161,7 +161,7 @@
                      'text-blue-700': payload.status === 'completed',
                      'text-red-700': payload.status === 'declined'
                    }" 
-                   x-text="payload.status ? payload.status : '-'"></span>
+                   x-text="payload.status ? payload.status.replace('_', ' ') : '-'"></span>
           </div>
       </div>
 

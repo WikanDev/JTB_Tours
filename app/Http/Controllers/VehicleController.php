@@ -31,7 +31,10 @@ class VehicleController extends Controller
                 $q->where('status', $request->status);
             }
 
-            $vehicles = $q->orderBy('brand')->paginate(20)->withQueryString();
+            $vehicles = $q->with(['assignments' => function($query) {
+                $query->whereIn('status', ['in_progress', 'accepted', 'pending'])
+                      ->with(['driver', 'order']);
+            }])->orderBy('brand')->paginate(20)->withQueryString();
 
             return view('vehicles.index', compact('vehicles'));
         } catch (\Throwable $e) {

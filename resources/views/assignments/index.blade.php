@@ -109,7 +109,7 @@
                   default => 'bg-gray-100 text-gray-800'
                 };
               @endphp
-              <span class="px-2 py-1 rounded text-xs {{ $badge }}">{{ ucfirst($a->status ?? '—') }}</span>
+              <span class="px-2 py-1 rounded text-xs whitespace-nowrap {{ $badge }}">{{ ucfirst(str_replace('_', ' ', $a->status ?? '—')) }}</span>
             </td>
             <td class="px-4 py-3 text-sm text-right">
               
