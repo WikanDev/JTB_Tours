@@ -193,64 +193,67 @@
       </div>
     </div>
 
-    <div class="mt-6 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
-       
-      <div class="w-full sm:w-auto flex items-center gap-2">
-      @auth
-      <template x-if="isCurrentPerformer()">
-        <div class="flex items-center space-x-2 w-full">
-            
-          
-          <template x-if="payload.status === 'pending'">
-             <div class="flex space-x-2 w-full">
-                <form x-bind:action="changeStatusUrl('accepted')" method="POST" x-ref="formAccept" class="inline-block">
-                  <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="status" value="accepted">
-                  <button type="button" @click="confirmAndSubmit($refs.formAccept, 'Terima tugas ini?')" class="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 transition-colors text-sm font-medium">Terima</button>
-                </form>
+    <div class="mt-6 pt-4 border-t flex flex-col gap-3">
+       {{-- Reject Reason Form --}}
+       <div x-show="showRejectReason && payload.status === 'pending'" class="w-full bg-red-50 p-4 rounded-lg border border-red-200" style="display:none;" x-transition>
+              <p class="text-sm font-bold text-red-800 mb-2">Alasan Penolakan:</p>
+              <form x-bind:action="changeStatusUrl('declined')" method="POST" x-ref="formDecline">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="declined">
+                <textarea name="rejection_reason" class="w-full text-sm border-gray-300 rounded mb-3 focus:ring-red-500 focus:border-red-500" placeholder="Tulis alasan..." required rows="2"></textarea>
+                <div class="flex space-x-2 justify-end">
+                    <button type="button" @click="showRejectReason = false" class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">Batal</button>
+                    <button type="button" @click="confirmAndSubmit($refs.formDecline, 'Yakin menolak tugas ini?')" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Kirim Penolakan</button>
+                </div>
+              </form>
+       </div>
+
+       {{-- Action Buttons Row --}}
+       <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="w-full sm:w-auto flex items-center gap-2">
+          @auth
+          <template x-if="isCurrentPerformer()">
+            <div class="flex items-center space-x-2 w-full">
                 
-                <button type="button" @click="showRejectReason = true" class="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition-colors text-sm font-medium" x-show="!showRejectReason">Tolak</button>
-             </div>
+              {{-- Pending: Accept / Reject --}}
+              <template x-if="payload.status === 'pending'">
+                 <div class="flex space-x-2 w-full">
+                    <form x-bind:action="changeStatusUrl('accepted')" method="POST" x-ref="formAccept" class="inline-block">
+                      <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="status" value="accepted">
+                      <button type="button" @click="confirmAndSubmit($refs.formAccept, 'Terima tugas ini?')" class="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 transition-colors text-sm font-medium">Terima</button>
+                    </form>
+                    
+                    <button type="button" @click="showRejectReason = true" class="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition-colors text-sm font-medium" x-show="!showRejectReason">Tolak</button>
+                 </div>
+              </template>
+
+              {{-- Accepted: Start Work --}}
+              <template x-if="payload.status === 'accepted'">
+                 <form x-bind:action="changeStatusUrl('in_progress')" method="POST" x-ref="formStart">
+                   <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                   <input type="hidden" name="status" value="in_progress">
+                   <button type="button" @click="confirmAndSubmit($refs.formStart, 'Mulai kerjakan tugas (start job)?')" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors text-sm font-medium">Mulai Jalan</button>
+                 </form>
+              </template>
+
+              {{-- In Progress: Complete --}}
+              <template x-if="payload.status === 'in_progress'">
+                <form x-bind:action="changeStatusUrl('completed')" method="POST" x-ref="formCompleted">
+                  <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="completed">
+                  <button type="button" @click="confirmAndSubmit($refs.formCompleted, 'Tugas sudah selesai?')" class="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 transition-colors text-sm font-medium">Selesai</button>
+                </form>
+              </template>
+            </div>
           </template>
+          @endauth
+          </div>
 
-          
-          <template x-if="payload.status === 'accepted'">
-             <form x-bind:action="changeStatusUrl('in_progress')" method="POST" x-ref="formStart">
-               <input type="hidden" name="_token" value="{{ csrf_token() }}">
-               <input type="hidden" name="status" value="in_progress">
-               <button type="button" @click="confirmAndSubmit($refs.formStart, 'Mulai kerjakan tugas (start job)?')" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors text-sm font-medium">Mulai Jalan</button>
-             </form>
-          </template>
-
-          
-          <template x-if="payload.status === 'in_progress'">
-            <form x-bind:action="changeStatusUrl('completed')" method="POST" x-ref="formCompleted">
-              <input type="hidden" name="_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="status" value="completed">
-              <button type="button" @click="confirmAndSubmit($refs.formCompleted, 'Tugas sudah selesai?')" class="px-4 py-2 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 transition-colors text-sm font-medium">Selesai</button>
-            </form>
-          </template>
-        </div>
-      </template>
-      @endauth
-      </div>
-
-      
-      <div x-show="showRejectReason" class="w-full absolute inset-x-0 bottom-0 bg-white p-4 border-t shadow-lg" style="display:none;" x-transition>
-             <p class="text-sm font-bold text-red-800 mb-2">Alasan Penolakan:</p>
-             <form x-bind:action="changeStatusUrl('declined')" method="POST" x-ref="formDecline">
-               <input type="hidden" name="_token" value="{{ csrf_token() }}">
-               <input type="hidden" name="status" value="declined">
-               <textarea name="rejection_reason" class="w-full text-sm border-gray-300 rounded mb-3 focus:ring-red-500 focus:border-red-500" placeholder="Tulis alasan..." required rows="2"></textarea>
-               <div class="flex space-x-2 justify-end">
-                   <button type="button" @click="showRejectReason = false" class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">Batal</button>
-                   <button type="button" @click="confirmAndSubmit($refs.formDecline, 'Yakin menolak tugas ini?')" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Kirim Penolakan</button>
-               </div>
-             </form>
-      </div>
-
-      <x-secondary-button type="button" @click="close()">Tutup</x-secondary-button>
+          <x-secondary-button type="button" @click="close()">Tutup</x-secondary-button>
+       </div>
     </div>
+
   </div>
 </div>
 

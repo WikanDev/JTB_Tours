@@ -11,7 +11,7 @@
 
   <form method="GET" class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-2">
     <div>
-      <input name="search" value="{{ request('search') }}" placeholder="Cari brand / tipe / plat" class="mt-1 block w-full rounded border-gray-200 px-3 py-2" />
+      <x-text-input name="search" value="{{ request('search') }}" placeholder="Cari brand / tipe / plat" />
     </div>
     <div>
       <select name="status" class="mt-1 block w-full rounded border-gray-200 px-3 py-2">
@@ -21,9 +21,9 @@
         <option value="maintenance" @if(request('status')=='maintenance') selected @endif>Maintenance</option>
       </select>
     </div>
-    <div class="flex items-end">
-      <button class="px-3 py-2 bg-gray-800 text-white rounded">Filter</button>
-      <a href="{{ route('vehicles.index') }}" class="ml-2 px-3 py-2 bg-gray-200 rounded">Reset</a>
+    <div class="flex items-end gap-2">
+      <x-primary-button>Filter</x-primary-button>
+      <x-secondary-button :href="route('vehicles.index')">Reset</x-secondary-button>
     </div>
   </form>
 

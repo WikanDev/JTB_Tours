@@ -328,15 +328,45 @@ class AssignmentController extends Controller
                  // Assuming edit mostly happens when pending/accepted.
             }
 
+            // Track if driver or guide changed
+            $driverChanged = $request->driver_id != $assignment->driver_id;
+            $guideChanged = $request->guide_id != $assignment->guide_id;
+            $wasDeclined = $assignment->status === 'declined';
+
             // Update assignment
             $assignment->driver_id = $request->driver_id;
             $assignment->guide_id = $request->guide_id;
             $assignment->vehicle_id = $request->vehicle_id;
             $assignment->note = $request->note;
+
+            // If assignment was declined and driver/guide changed, reset for reassignment
+            if ($wasDeclined && ($driverChanged || $guideChanged)) {
+                $assignment->status = 'pending';
+                $assignment->rejection_reason = null;
+                $assignment->rejected_at = null;
+                $assignment->assigned_at = now();
+
+                // Update order status back to assigned
+                $assignment->order->update(['status' => 'assigned']);
+            }
+
             $assignment->save();
 
-            // Notify new driver/guide if changed? 
-            // Simple: just save.
+            // 🔔 Notify new driver if changed
+            if ($driverChanged) {
+                $newDriver = User::find($request->driver_id);
+                if ($newDriver) {
+                    $newDriver->notify(new \App\Notifications\NewAssignmentNotification($assignment));
+                }
+            }
+
+            // 🔔 Notify new guide if changed
+            if ($guideChanged && $request->guide_id) {
+                $newGuide = User::find($request->guide_id);
+                if ($newGuide) {
+                    $newGuide->notify(new \App\Notifications\NewAssignmentNotification($assignment));
+                }
+            }
 
             DB::commit();
             return redirect()->route('assignments.index')->with('success', 'Assignment berhasil diperbarui.');
@@ -347,6 +377,7 @@ class AssignmentController extends Controller
             return back()->withInput()->with('error', 'Gagal update assignment.');
         }
     }
+
 
     /**
      * Ubah status assignment oleh driver/guide
@@ -410,7 +441,14 @@ class AssignmentController extends Controller
                 // Should we set Order to 'pending' again?
                 // Yes, so admin sees it in pending list.
                 $assignment->order->update(['status' => 'pending']);
+
+                // 🔔 Notify all staff about the declined assignment
+                $staffUsers = User::where('role', 'staff')->get();
+                foreach ($staffUsers as $staffUser) {
+                    $staffUser->notify(new \App\Notifications\AssignmentDeclinedNotification($assignment, $user));
+                }
             }
+
 
             if ($status === 'in_progress') {
                 $assignment->started_at = now();

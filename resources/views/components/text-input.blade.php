@@ -24,7 +24,7 @@
         value="{{ old($name, $value) }}"
         placeholder="{{ $placeholder }}"
         {{ $required ? 'required' : '' }}
-        {{ $attributes->except(['class', 'label', 'name', 'type', 'value', 'required', 'placeholder'])->merge(['class' => 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm']) }}
+        {{ $attributes->except(['class', 'label', 'name', 'type', 'value', 'required', 'placeholder'])->merge(['class' => 'h-[42px] mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm']) }}
     >
     
     @error($name)

@@ -13,9 +13,9 @@
             </select>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama/HP..." 
                    class="border-gray-300 rounded focus:ring-red-500 focus:border-red-500 text-sm w-full md:w-64">
-            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+            <x-primary-button type="submit">
                 <i class="ph ph-magnifying-glass"></i>
-            </button>
+            </x-primary-button>
         </form>
     </div>
 

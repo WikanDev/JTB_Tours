@@ -53,9 +53,9 @@
         </select>
       </div>
 
-      <div class="flex items-end">
-        <button class="px-3 py-2 bg-gray-800 text-white rounded">Filter</button>
-        <a href="{{ route('availability.index') }}" class="ml-2 px-3 py-2 bg-gray-200 rounded">Reset</a>
+      <div class="flex items-end gap-2">
+        <x-primary-button>Filter</x-primary-button>
+        <x-secondary-button :href="route('availability.index')">Reset</x-secondary-button>
       </div>
     </form>
   @endif

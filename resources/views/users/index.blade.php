@@ -29,9 +29,9 @@
       <input name="search" value="{{ request('search') }}" placeholder="nama / email / telepon" class="mt-1 block w-full rounded border-gray-200" />
     </div>
 
-    <div class="col-span-2 flex items-end space-x-2">
-      <button class="px-3 py-2 bg-gray-800 text-white rounded">Filter</button>
-      <a href="{{ route('users.index') }}" class="px-3 py-2 bg-gray-200 rounded">Reset</a>
+    <div class="col-span-2 flex items-end gap-2">
+      <x-primary-button>Filter</x-primary-button>
+      <x-secondary-button :href="route('users.index')">Reset</x-secondary-button>
     </div>
   </form>
 

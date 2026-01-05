@@ -13,7 +13,7 @@
   </div>
 
   <form method="GET" class="mb-4 flex gap-2">
-    <input name="search" value="{{ request('search') }}" placeholder="cari nama atau deskripsi" class="px-3 py-2 rounded border-gray-200 w-full" />
+    <x-text-input name="search" value="{{ request('search') }}" placeholder="cari nama atau deskripsi" />
     <x-primary-button type="submit">Cari</x-primary-button>
     <x-secondary-button :href="route('products.index')">Reset</x-secondary-button>
   </form>

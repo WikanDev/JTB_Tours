@@ -40,13 +40,9 @@
       <input name="q" value="{{ request('q') }}" placeholder="cari nama driver/guide" class="mt-1 block w-full rounded border-gray-200 px-3 py-2" />
     </div>
 
-    <div class="flex items-center">
-      <button type="submit" class="px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded transition">
-        Terapkan
-      </button>
-      <a href="{{ route('work-schedules.index') }}" class="ml-2 px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded transition">
-        Reset Filter
-      </a>
+    <div class="flex items-center gap-2">
+      <x-primary-button type="submit">Terapkan</x-primary-button>
+      <x-secondary-button :href="route('work-schedules.index')">Reset Filter</x-secondary-button>
     </div>
   </form>
 

@@ -35,9 +35,9 @@
       <x-text-input name="from" type="date" value="{{ request('from') }}" />
     </div>
 
-    <div class="flex items-end">
-      <button type="submit" class="px-3 py-2 bg-gray-800 text-white rounded">Filter</button>
-      <a href="{{ route('assignments.index') }}" class="ml-2 px-3 py-2 bg-gray-200 rounded">Reset</a>
+    <div class="flex items-end gap-2">
+      <x-primary-button type="submit">Filter</x-primary-button>
+      <x-secondary-button :href="route('assignments.index')">Reset</x-secondary-button>
     </div>
   </form>
 
@@ -112,7 +112,7 @@
               <span class="px-2 py-1 rounded text-xs whitespace-nowrap {{ $badge }}">{{ ucfirst(str_replace('_', ' ', $a->status ?? '—')) }}</span>
             </td>
             <td class="px-4 py-3 text-sm text-right">
-              
+              {{-- Detail Button --}}
               <button
                 onclick='openAssignmentModal(@json($modalPayload))'
                 class="inline-flex items-center px-2 py-1 bg-indigo-600 text-white rounded text-xs">
@@ -123,7 +123,20 @@
                 Detail
               </button>
 
-              <x-edit-button :href="route('assignments.edit', $a)">Edit</x-edit-button>
+              {{-- Reassign Button (only for declined) --}}
+              @if($a->status === 'declined')
+                <a href="{{ route('assignments.edit', $a) }}" 
+                   class="inline-flex items-center px-2 py-2 bg-gradient-to-r from-amber-400 to-orange-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:from-amber-500 hover:to-orange-600 active:from-amber-600 active:to-orange-700 focus:outline-none transition ease-in-out duration-150 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reassign
+                </a>
+              @else
+                <x-edit-button :href="route('assignments.edit', $a)">Edit</x-edit-button>
+              @endif
+
+
 
               <form action="{{ route('assignments.destroy', $a) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus assignment?')">
                 @csrf @method('DELETE')

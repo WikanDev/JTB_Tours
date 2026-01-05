@@ -14,6 +14,7 @@ class Assignment extends Model
         'assigned_by',
         'status',
         'vehicle_id',
+        'note',
         'rejection_reason',
         'rejected_at',
         'workstart',
