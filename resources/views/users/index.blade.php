@@ -13,24 +13,18 @@
   </div>
 
   
-  <form method="GET" class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-2">
-    <div>
-      <label class="block text-xs text-gray-600">Role</label>
-      <select name="role" class="mt-1 block w-full rounded border-gray-200">
-        <option value="">Semua</option>
-        @foreach($roles as $r)
-          <option value="{{ $r }}" @if(request('role') == $r) selected @endif>{{ ucfirst(str_replace('_',' ', $r)) }}</option>
-        @endforeach
-      </select>
-    </div>
+  <form method="GET" class="mb-4 flex items-end gap-2">
+    <x-select-input name="role" label="Role">
+      <option value="">Semua</option>
+      @foreach($roles as $r)
+        <option value="{{ $r }}" @if(request('role') == $r) selected @endif>{{ ucfirst(str_replace('_',' ', $r)) }}</option>
+      @endforeach
+    </x-select-input>
 
-    <div>
-      <label class="block text-xs text-gray-600">Cari</label>
-      <input name="search" value="{{ request('search') }}" placeholder="nama / email / telepon" class="mt-1 block w-full rounded border-gray-200" />
-    </div>
+    <x-text-input name="search" label="Cari" value="{{ request('search') }}" placeholder="nama / email / telepon" />
 
-    <div class="col-span-2 flex items-end gap-2">
-      <x-primary-button>Filter</x-primary-button>
+    <div class="flex gap-2">
+      <x-primary-button type="submit">Filter</x-primary-button>
       <x-secondary-button :href="route('users.index')">Reset</x-secondary-button>
     </div>
   </form>
@@ -100,15 +94,16 @@
 
               <x-edit-button :href="route('users.edit', $u)">Edit</x-edit-button>
 
-              <form action="{{ route('users.destroy', $u) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus user ini?')">
-                @csrf @method('DELETE')
-                <button class="inline-flex items-center px-2 py-1 ml-1 bg-red-600 text-white rounded text-xs">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Hapus
-                </button>
-              </form>
+              <button 
+                type="button"
+                onclick="confirmDelete('{{ route('users.destroy', $u) }}', 'Hapus User', 'Apakah Anda yakin ingin menghapus user {{ $u->name }}?')"
+                class="inline-flex items-center px-2 py-1 ml-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Hapus
+              </button>
             </td>
           </tr>
         @empty

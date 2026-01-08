@@ -65,15 +65,16 @@
 
               <x-edit-button :href="route('products.edit', $p)">Edit</x-edit-button>
 
-              <form action="{{ route('products.destroy', $p) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus produk ini?')">
-                @csrf @method('DELETE')
-                <button class="inline-flex items-center px-2 py-1 ml-1 bg-red-600 text-white rounded text-xs">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Hapus
-                </button>
-              </form>
+              <button 
+                type="button"
+                onclick="confirmDelete('{{ route('products.destroy', $p) }}', 'Hapus Product', 'Apakah Anda yakin ingin menghapus product {{ $p->name }}?')"
+                class="inline-flex items-center px-2 py-1 ml-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Hapus
+              </button>
             </td>
           </tr>
         @empty

@@ -306,8 +306,22 @@
         return `/assignments/${this.payload.id}/status`;
       },
       confirmAndSubmit(formRef, msg = 'Yakin ingin melakukan aksi ini?') {
-        if (!confirm(msg)) return;
-        formRef.submit();
+        // Show confirmation modal
+        const action = formRef.getAttribute('action') || formRef.action;
+        const status = formRef.querySelector('input[name="status"]')?.value || '';
+        
+        // For status changes, we'll submit the form directly since it's not a destructive action
+        // But we can still use a modal for important confirmations
+        window.__pendingFormRef = formRef;
+        window.dispatchEvent(new CustomEvent('open-confirm-modal', {
+          detail: {
+            title: 'Konfirmasi Aksi',
+            message: msg,
+            action: action,
+            method: 'POST',
+            onConfirm: () => formRef.submit()
+          }
+        }));
       }
     }
   }

@@ -1,4 +1,5 @@
-
+{{-- Confirmation Modal --}}
+<x-confirm-modal danger />
 
 @push('scripts')
 <script>

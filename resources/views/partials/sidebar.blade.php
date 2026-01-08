@@ -26,7 +26,7 @@
         </li>
       @endif
 
-      @if($isAuth && $role === 'super_admin')
+      @if($isAuth && in_array($role, ['super_admin','admin','staff']))
         <li>
           <a href="{{ Route::has('users.index') ? route('users.index') : '#' }}"
              class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 {{ request()->routeIs('users.*') ? 'bg-white text-red-700 shadow-lg font-semibold' : 'text-white hover:bg-red-900 hover:pl-5' }}">

@@ -106,7 +106,7 @@
               
               @if(auth()->check() && in_array(auth()->user()->role, ['super_admin','admin','staff']))
                 
-                <form action="{{ route('availability.force', $u) }}" method="POST" class="inline-flex items-center" onsubmit="return confirm('Set status untuk {{ $u->name }}?')">
+                <form action="{{ route('availability.force', $u) }}" method="POST" class="inline-flex items-center">
                   @csrf
                   <select name="status" class="px-2 py-1 rounded border-gray-200 text-sm">
                     <option value="online" @if($u->status=='online') selected @endif>Online</option>
