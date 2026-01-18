@@ -11,7 +11,7 @@
     x-data="confirmModalData()" 
     x-show="open" 
     x-cloak 
-    class="fixed inset-0 z-50 flex items-center justify-center"
+    class="fixed inset-0 z-[70] flex items-center justify-center"
     id="{{ $id }}"
 >
     <!-- Overlay -->
@@ -63,16 +63,18 @@
                 {{ $cancelText }}
             </button>
             
-            <form x-ref="confirmForm" method="POST" class="inline">
+            <form x-ref="confirmForm" method="POST" class="inline" style="display: none;">
                 @csrf
                 <input type="hidden" name="_method" x-bind:value="formMethod">
-                <button 
-                    type="submit"
-                    class="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors {{ $danger ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' }}"
-                >
-                    {{ $confirmText }}
-                </button>
             </form>
+            
+            <button 
+                @click="handleConfirm()"
+                type="button"
+                class="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors {{ $danger ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' }}"
+            >
+                {{ $confirmText }}
+            </button>
         </div>
     </div>
 </div>
@@ -86,22 +88,53 @@
             message: '{{ $message }}',
             formAction: '',
             formMethod: 'POST',
+            onConfirmCallback: null, // Store callback here
             init() {
+                console.log('🎬 [ConfirmModal] Initialized');
+                
                 window.addEventListener('open-confirm-modal', (e) => {
+                    console.group('📂 [ConfirmModal] Opening modal');
+                    console.log('Event detail:', e.detail);
+                    
                     this.title = e.detail.title || '{{ $title }}';
                     this.message = e.detail.message || '{{ $message }}';
                     this.formAction = e.detail.action || '';
                     this.formMethod = e.detail.method || 'POST';
+                    this.onConfirmCallback = e.detail.onConfirm || null; // Save callback
+                    
+                    console.log('Form action:', this.formAction);
+                    console.log('Form method:', this.formMethod);
+                    console.log('Has onConfirm callback:', !!this.onConfirmCallback);
                     
                     // Set form action dynamically
                     this.$nextTick(() => {
                         if (this.$refs.confirmForm) {
                             this.$refs.confirmForm.setAttribute('action', this.formAction);
+                            console.log('✅ [ConfirmModal] Form action set to:', this.formAction);
                         }
                     });
                     
                     this.open = true;
+                    console.log('✅ [ConfirmModal] Modal opened');
+                    console.groupEnd();
                 });
+            },
+            handleConfirm() {
+                console.log('🔔 [ConfirmModal] Confirm button clicked');
+                
+                // Execute callback if provided
+                if (this.onConfirmCallback && typeof this.onConfirmCallback === 'function') {
+                    console.log('✅ [ConfirmModal] Executing onConfirm callback');
+                    this.onConfirmCallback();
+                } else {
+                    console.log('⚠️ [ConfirmModal] No callback, submitting form directly');
+                    // Fallback: submit form directly if no callback
+                    if (this.$refs.confirmForm) {
+                        this.$refs.confirmForm.submit();
+                    }
+                }
+                
+                this.open = false;
             }
         };
     }

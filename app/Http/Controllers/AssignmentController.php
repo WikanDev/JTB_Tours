@@ -384,6 +384,17 @@ class AssignmentController extends Controller
      */
     public function changeStatus(Request $request, Assignment $assignment)
     {
+        // 🔍 Log untuk debugging
+        Log::info('Assignment.changeStatus called', [
+            'assignment_id' => $assignment->id,
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()->role ?? 'N/A',
+            'requested_status' => $request->status,
+            'current_status' => $assignment->status,
+            'rejection_reason' => $request->rejection_reason,
+            'request_all' => $request->all(),
+        ]);
+
         $request->validate([
             'status' => 'required|in:accepted,in_progress,completed,declined',
             'rejection_reason' => 'required_if:status,declined|string|max:1000',
@@ -394,14 +405,26 @@ class AssignmentController extends Controller
 
         //  Validasi: hanya driver/guide yang bersangkutan
         if (!in_array($user->role, ['driver', 'guide'])) {
+            Log::warning('Assignment.changeStatus forbidden: User is not driver/guide', [
+                'user_id' => $user->id,
+                'user_role' => $user->role
+            ]);
             abort(403, 'Hanya driver/guide yang boleh mengubah status.');
         }
 
         if ($user->role === 'driver' && $assignment->driver_id !== $user->id) {
+            Log::warning('Assignment.changeStatus forbidden: User is not assigned driver', [
+                'user_id' => $user->id,
+                'assignment_driver_id' => $assignment->driver_id
+            ]);
             abort(403, 'Anda bukan driver yang ditugaskan.');
         }
 
         if ($user->role === 'guide' && $assignment->guide_id !== $user->id) {
+            Log::warning('Assignment.changeStatus forbidden: User is not assigned guide', [
+                'user_id' => $user->id,
+                'assignment_guide_id' => $assignment->guide_id
+            ]);
             abort(403, 'Anda bukan guide yang ditugaskan.');
         }
 
@@ -433,6 +456,13 @@ class AssignmentController extends Controller
 
         try {
             if ($status === 'declined') {
+                Log::info('Assignment.changeStatus: Processing decline', [
+                    'assignment_id' => $assignment->id,
+                    'rejection_reason' => $request->rejection_reason,
+                    'rejected_by' => $user->id,
+                    'rejected_by_role' => $user->role,
+                ]);
+
                 $assignment->rejection_reason = $request->rejection_reason;
                 $assignment->rejected_at = now();
                 // If declined, Order should go back to pending?
@@ -442,11 +472,19 @@ class AssignmentController extends Controller
                 // Yes, so admin sees it in pending list.
                 $assignment->order->update(['status' => 'pending']);
 
+                Log::info('Assignment.changeStatus: Order status updated to pending after decline', [
+                    'order_id' => $assignment->order_id
+                ]);
+
                 // 🔔 Notify all staff about the declined assignment
                 $staffUsers = User::where('role', 'staff')->get();
                 foreach ($staffUsers as $staffUser) {
                     $staffUser->notify(new \App\Notifications\AssignmentDeclinedNotification($assignment, $user));
                 }
+
+                Log::info('Assignment.changeStatus: Staff users notified about decline', [
+                    'staff_count' => $staffUsers->count()
+                ]);
             }
 
 
@@ -583,14 +621,53 @@ class AssignmentController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            Log::info('MyAssignments: Page accessed', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'user_role' => $user->role,
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
             $assignments = Assignment::where(function ($q) use ($user) {
                 if ($user->role === 'driver') $q->where('driver_id', $user->id);
                 if ($user->role === 'guide') $q->where('guide_id', $user->id);
             })->with(['order.product'])->orderBy('assigned_at', 'desc')->get();
 
+            Log::info('MyAssignments: Assignments loaded', [
+                'user_id' => $user->id,
+                'total_assignments' => $assignments->count(),
+                'pending' => $assignments->where('status', 'pending')->count(),
+                'accepted' => $assignments->where('status', 'accepted')->count(),
+                'in_progress' => $assignments->where('status', 'in_progress')->count(),
+                'completed' => $assignments->where('status', 'completed')->count(),
+                'declined' => $assignments->where('status', 'declined')->count(),
+            ]);
+
+            // Log detail setiap assignment untuk debugging
+            foreach ($assignments as $assignment) {
+                Log::debug('MyAssignments: Assignment detail', [
+                    'assignment_id' => $assignment->id,
+                    'order_id' => $assignment->order_id,
+                    'status' => $assignment->status,
+                    'driver_id' => $assignment->driver_id,
+                    'guide_id' => $assignment->guide_id,
+                    'vehicle_id' => $assignment->vehicle_id,
+                    'assigned_at' => $assignment->assigned_at,
+                    'started_at' => $assignment->started_at,
+                    'completed_at' => $assignment->completed_at,
+                    'rejection_reason' => $assignment->rejection_reason,
+                ]);
+            }
+
             return view('assignments.my', compact('assignments'));
         } catch (\Throwable $e) {
-            Log::error('Assignment.myAssignments error: ' . $e->getMessage(), ['user_id' => Auth::id()]);
+            Log::error('Assignment.myAssignments error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return redirect()->back()->with('error', 'Gagal mengambil daftar tugas Anda.');
         }
     }

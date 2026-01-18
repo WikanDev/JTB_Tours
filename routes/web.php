@@ -54,7 +54,7 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::middleware(['role:super_admin,staff'])->group(function () {
+    Route::middleware(['role:super_admin,staff,admin'])->group(function () {
         Route::resource('users', UserController::class);
     });
 

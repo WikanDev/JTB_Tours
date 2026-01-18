@@ -116,6 +116,14 @@ class UserController extends Controller
     
     public function update(Request $request, User $user)
     {
+        Log::info('User.update START', [
+            'user_id' => $user->id,
+            'request_all' => $request->except(['password', 'password_confirmation']),
+            'has_password' => $request->filled('password'),
+            'password_length' => strlen($request->password ?? ''),
+            'password_matches_db' => $request->password === $user->password,
+        ]);
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'role' => ['required', Rule::in(['super_admin','admin','staff','driver','guide'])],
@@ -125,16 +133,27 @@ class UserController extends Controller
             'password' => 'nullable|confirmed|min:8',
             'monthly_work_limit' => 'nullable|integer|min:0'
         ]);
+        // dd($data);
 
         DB::beginTransaction();
         try {
+            // Jika password kosong, jangan update password
             if (empty($data['password'])) {
+                Log::info('User.update: Password empty, skipping password update');
                 unset($data['password']);
+            } else {
+                Log::info('User.update: Password provided, will update password');
             }
+
+            Log::info('User.update: Data to update', [
+                'data_keys' => array_keys($data),
+                'has_password_in_data' => isset($data['password']),
+            ]);
 
             
             if (isset($data['role']) && !in_array($data['role'], ['driver','guide'])) {
-                $data['monthly_work_limit'] = null;
+                // Untuk role selain driver/guide, hapus monthly_work_limit dari data update
+                unset($data['monthly_work_limit']);
                 $data['status'] = $user->status ?? 'offline';
             } else {
                 
@@ -144,6 +163,8 @@ class UserController extends Controller
             }
 
             $user->update($data);
+
+            Log::info('User.update SUCCESS', ['user_id' => $user->id]);
 
             DB::commit();
             return redirect()->route('users.index')->with('success','User berhasil diperbarui.');

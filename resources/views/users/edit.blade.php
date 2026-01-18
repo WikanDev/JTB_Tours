@@ -9,7 +9,7 @@
     <x-secondary-button :href="route('users.index')">Kembali</x-secondary-button>
   </div>
 
-  <form action="{{ route('users.update', $user) }}" method="POST" class="bg-white p-4 rounded shadow">
+  <form action="{{ route('users.update', $user) }}" method="POST" class="bg-white p-4 rounded shadow" x-data="{ selectedRole: '{{ old('role', $user->role) }}' }">
     @csrf @method('PUT')
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -18,11 +18,23 @@
       </div>
 
       <div>
-        <x-select-input name="role" label="Role" required>
-            @foreach($roles as $r)
-                <option value="{{ $r }}" @selected(old('role', $user->role)==$r)>{{ ucfirst(str_replace('_',' ',$r)) }}</option>
-            @endforeach
-        </x-select-input>
+        <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+          Role <span class="text-red-500">*</span>
+        </label>
+        <select 
+          name="role" 
+          id="role" 
+          required 
+          x-model="selectedRole"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+        >
+          @foreach($roles as $r)
+            <option value="{{ $r }}" @selected(old('role', $user->role)==$r)>{{ ucfirst(str_replace('_',' ',$r)) }}</option>
+          @endforeach
+        </select>
+        @error('role')
+          <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
       </div>
 
       <div>
@@ -45,8 +57,10 @@
         <x-text-input type="password" name="password_confirmation" label="Confirm Password" />
       </div>
 
-      <div>
-        <x-text-input type="number" name="monthly_work_limit" label="Monthly Work Limit (jam, untuk driver/guide)" :value="old('monthly_work_limit', $user->monthly_work_limit)" min="0" />
+      {{-- Hanya tampilkan untuk driver/guide --}}
+      <div x-show="selectedRole === 'driver' || selectedRole === 'guide'" x-transition>
+        <x-text-input type="number" name="monthly_work_limit" label="Monthly Work Limit (jam)" :value="old('monthly_work_limit', $user->monthly_work_limit ?? '200')" min="0" />
+        <p class="text-xs text-gray-500 mt-1">Default: 200 jam/bulan</p>
       </div>
     </div>
 

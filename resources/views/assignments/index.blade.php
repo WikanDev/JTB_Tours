@@ -164,9 +164,9 @@
   </div>
 </div>
 
-<div x-data="assignmentModal()" x-init="init()" x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+<div x-data="assignmentModal()" x-init="init()" x-show="open" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center">
   <div class="fixed inset-0 bg-black/40" @click="close()"></div>
-  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 z-50 transform transition-all overflow-y-auto max-h-[90vh]">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 z-[60] transform transition-all overflow-y-auto max-h-[90vh]">
     <div class="flex items-start justify-between border-b pb-3 mb-4">
       <h3 class="text-xl font-bold text-gray-900">Assignment #<span x-text="payload.id"></span></h3>
       <button @click="close()" class="text-gray-400 hover:text-gray-600 transition-colors">

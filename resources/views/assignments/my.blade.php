@@ -17,6 +17,20 @@
     $accepted = $assignments->where('status', 'accepted');
     $running  = $assignments->where('status', 'in_progress');
     $history = $assignments->whereIn('status', ['completed', 'declined']);
+    
+    // Log untuk debugging - tampilkan di console
+    echo "<script>
+      console.group('🔍 [MyAssignments] Page Load Debug');
+      console.log('Total Assignments:', " . $assignments->count() . ");
+      console.log('Pending:', " . $pending->count() . ");
+      console.log('Accepted:', " . $accepted->count() . ");
+      console.log('In Progress:', " . $running->count() . ");
+      console.log('History (Completed/Declined):', " . $history->count() . ");
+      console.log('User Role:', '" . auth()->user()->role . "');
+      console.log('User ID:', " . auth()->id() . ");
+      console.log('User Name:', '" . auth()->user()->name . "');
+      console.groupEnd();
+    </script>";
   @endphp
 
   
@@ -116,12 +130,12 @@
   x-init="init()"
   x-show="open"
   x-cloak
-  class="fixed inset-0 z-50 flex items-center justify-center p-4"
+  class="fixed inset-0 z-[60] flex items-center justify-center p-4"
   style="display: none;"
 >
   <div class="absolute inset-0 bg-black/40" @click="close()" aria-hidden="true"></div>
   <div
-    class="relative bg-white rounded shadow-lg max-w-2xl w-full z-50 p-4"
+    class="relative bg-white rounded shadow-lg max-w-2xl w-full z-[60] p-4"
     x-transition
     @keydown.escape.window="close()"
     role="dialog"
@@ -197,13 +211,20 @@
        {{-- Reject Reason Form --}}
        <div x-show="showRejectReason && payload.status === 'pending'" class="w-full bg-red-50 p-4 rounded-lg border border-red-200" style="display:none;" x-transition>
               <p class="text-sm font-bold text-red-800 mb-2">Alasan Penolakan:</p>
-              <form x-bind:action="changeStatusUrl('declined')" method="POST" x-ref="formDecline">
+              <form x-bind:action="changeStatusUrl('declined')" method="POST" x-ref="formDecline" @submit.prevent="validateAndSubmitDecline">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="status" value="declined">
-                <textarea name="rejection_reason" class="w-full text-sm border-gray-300 rounded mb-3 focus:ring-red-500 focus:border-red-500" placeholder="Tulis alasan..." required rows="2"></textarea>
+                <textarea 
+                  name="rejection_reason" 
+                  x-ref="rejectionReasonInput"
+                  class="w-full text-sm border-gray-300 rounded mb-3 focus:ring-red-500 focus:border-red-500" 
+                  placeholder="Tulis alasan..." 
+                  required 
+                  rows="2"
+                ></textarea>
                 <div class="flex space-x-2 justify-end">
                     <button type="button" @click="showRejectReason = false" class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">Batal</button>
-                    <button type="button" @click="confirmAndSubmit($refs.formDecline, 'Yakin menolak tugas ini?')" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Kirim Penolakan</button>
+                    <button type="submit" class="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Kirim Penolakan</button>
                 </div>
               </form>
        </div>
@@ -286,29 +307,88 @@
       currentUserRole: {!! json_encode(auth()->check() ? auth()->user()->role : null) !!},
 
       init() {
+        console.log('🎬 [AssignmentModal] Initialized', {
+          currentUserId: this.currentUserId,
+          currentUserRole: this.currentUserRole,
+          timestamp: new Date().toISOString()
+        });
+
         window.addEventListener('open-assignment-modal', (e) => {
+          console.group('📂 [AssignmentModal] Opening Modal');
+          console.log('Event payload:', e.detail);
+          console.log('Assignment ID:', e.detail?.id);
+          console.log('Assignment Status:', e.detail?.status);
+          console.log('Driver:', e.detail?.driver);
+          console.log('Guide:', e.detail?.guide);
+          console.log('Current User ID:', this.currentUserId);
+          console.log('Current User Role:', this.currentUserRole);
+          console.groupEnd();
+
           this.payload = e.detail || {};
           this.open = true;
           this.showRejectReason = false;
+
+          console.log('✅ [AssignmentModal] Modal opened successfully');
         });
       },
       close() {
+        console.log('❌ [AssignmentModal] Closing modal', {
+          assignmentId: this.payload?.id,
+          wasRejecting: this.showRejectReason
+        });
         this.open = false;
         this.payload = {};
       },
       isCurrentPerformer() {
-        if (!this.currentUserId) return false;
-        if (this.currentUserRole === 'driver' && this.payload.driver && this.payload.driver.id == this.currentUserId) return true;
-        if (this.currentUserRole === 'guide' && this.payload.guide && this.payload.guide.id == this.currentUserId) return true;
-        return false;
+        const isDriver = this.currentUserRole === 'driver' && this.payload.driver && this.payload.driver.id == this.currentUserId;
+        const isGuide = this.currentUserRole === 'guide' && this.payload.guide && this.payload.guide.id == this.currentUserId;
+        const result = isDriver || isGuide;
+
+        console.log('🔐 [AssignmentModal] Performer check', {
+          currentUserId: this.currentUserId,
+          currentUserRole: this.currentUserRole,
+          assignmentDriverId: this.payload.driver?.id,
+          assignmentGuideId: this.payload.guide?.id,
+          isDriver,
+          isGuide,
+          isCurrentPerformer: result
+        });
+
+        return result;
       },
       changeStatusUrl(status) {
         return `/assignments/${this.payload.id}/status`;
       },
+      validateAndSubmitDecline() {
+        console.log('[Assignment Decline] Validating rejection reason...');
+        const reasonInput = this.$refs.rejectionReasonInput;
+        const reason = reasonInput?.value?.trim() || '';
+        
+        console.log('[Assignment Decline] Rejection reason:', reason);
+        console.log('[Assignment Decline] Rejection reason length:', reason.length);
+        
+        if (!reason || reason.length < 5) {
+          console.warn('[Assignment Decline] Validation failed: Reason too short or empty');
+          alert('⚠️ Harap isi alasan penolakan minimal 5 karakter!');
+          reasonInput?.focus();
+          return false;
+        }
+        
+        console.log('[Assignment Decline] Validation passed, showing confirmation modal...');
+        this.confirmAndSubmit(this.$refs.formDecline, 'Yakin menolak tugas ini?');
+        return true;
+      },
       confirmAndSubmit(formRef, msg = 'Yakin ingin melakukan aksi ini?') {
+        console.group('🔔 [AssignmentModal] Confirm and Submit');
+        
         // Show confirmation modal
         const action = formRef.getAttribute('action') || formRef.action;
         const status = formRef.querySelector('input[name="status"]')?.value || '';
+        
+        console.log('Form action:', action);
+        console.log('Status:', status);
+        console.log('Message:', msg);
+        console.log('Form reference:', formRef);
         
         // For status changes, we'll submit the form directly since it's not a destructive action
         // But we can still use a modal for important confirmations
@@ -319,9 +399,14 @@
             message: msg,
             action: action,
             method: 'POST',
-            onConfirm: () => formRef.submit()
+            onConfirm: () => {
+              console.log('✅ [AssignmentModal] User confirmed, submitting form...');
+              formRef.submit();
+            }
           }
         }));
+        
+        console.groupEnd();
       }
     }
   }
