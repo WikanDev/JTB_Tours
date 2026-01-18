@@ -30,10 +30,13 @@ class UserController extends Controller
                 });
             }
 
+            // Filter super_admin dari daftar user
+            $q->where('role', '!=', 'super_admin');
+
             $users = $q->orderBy('role')->orderBy('name')->paginate(20)->withQueryString();
 
             
-            $roles = ['super_admin','admin','staff','driver','guide'];
+            $roles = ['admin','staff','driver','guide'];
 
             return view('users.index', compact('users','roles'));
         } catch (\Throwable $e) {
@@ -46,7 +49,7 @@ class UserController extends Controller
     public function create()
     {
         try {
-            $roles = ['super_admin','admin','staff','driver','guide'];
+            $roles = ['admin','staff','driver','guide'];
             return view('users.create', compact('roles'));
         } catch (\Throwable $e) {
             Log::error('User.create error: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
@@ -105,7 +108,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         try {
-            $roles = ['super_admin','admin','staff','driver','guide'];
+            $roles = ['admin','staff','driver','guide'];
             return view('users.edit', compact('user','roles'));
         } catch (\Throwable $e) {
             Log::error('User.edit error: '.$e->getMessage(), ['user_id'=>$user->id, 'trace'=>$e->getTraceAsString()]);

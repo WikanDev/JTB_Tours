@@ -33,7 +33,7 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
-          <th class="px-4 py-2 text-left text-sm font-medium">ID</th>
+          <th class="px-4 py-2 text-left text-sm font-medium">No</th>
           <th class="px-4 py-2 text-left text-sm font-medium">Nama</th>
           <th class="px-4 py-2 text-left text-sm font-medium">Email / Phone</th>
           <th class="px-4 py-2 text-left text-sm font-medium">Role</th>
@@ -60,7 +60,7 @@
           @endphp
 
           <tr>
-            <td class="px-4 py-3 text-sm">{{ $u->id }}</td>
+            <td class="px-4 py-3 text-sm">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
             <td class="px-4 py-3 text-sm">
               <div class="font-medium">{{ $u->name }}</div>
               <div class="text-xs text-gray-500">Join: {{ $u->join_date ? \Carbon\Carbon::parse($u->join_date)->format('d M Y') : '-' }}</div>
