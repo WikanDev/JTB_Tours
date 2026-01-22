@@ -45,10 +45,10 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <x-text-input type="email" name="email" label="Email" :value="old('email', $order->email)" />
+                <x-text-input type="email" name="email" label="Email" :value="old('email', $order->email)" required />
             </div>
             <div>
-                <x-text-input name="phone" label="Telepon" :value="old('phone', $order->phone)" />
+                <x-text-input name="phone" label="Telepon" :value="old('phone', $order->phone)" required />
             </div>
         </div>
       </div>
@@ -113,10 +113,10 @@
         </div>
 
         <div>
-            <x-text-input name="pickup_location" label="Lokasi Jemput" :value="old('pickup_location', $order->pickup_location)" />
+            <x-text-input name="pickup_location" label="Lokasi Jemput" :value="old('pickup_location', $order->pickup_location)" required />
         </div>
         <div>
-            <x-text-input name="destination" label="Tujuan" :value="old('destination', $order->destination)" />
+            <x-text-input name="destination" label="Tujuan" :value="old('destination', $order->destination)" required />
         </div>
       </div>
 

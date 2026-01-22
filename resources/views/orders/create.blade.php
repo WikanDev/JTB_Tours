@@ -41,10 +41,10 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <x-text-input type="email" name="email" label="Email" :value="old('email')" />
+                <x-text-input type="email" name="email" label="Email" :value="old('email')" required />
             </div>
             <div>
-                <x-text-input name="phone" label="Telepon" :value="old('phone')" />
+                <x-text-input name="phone" label="Telepon" :value="old('phone')" required />
             </div>
         </div>
       </div>
@@ -109,10 +109,10 @@
         </div>
 
         <div>
-            <x-text-input name="pickup_location" label="Lokasi Jemput" :value="old('pickup_location')" />
+            <x-text-input name="pickup_location" label="Lokasi Jemput" :value="old('pickup_location')" required/>
         </div>
         <div>
-            <x-text-input name="destination" label="Tujuan" :value="old('destination')" />
+            <x-text-input name="destination" label="Tujuan" :value="old('destination')" required/>
         </div>
       </div>
 
